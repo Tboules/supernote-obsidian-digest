@@ -1,5 +1,6 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 import MyPlugin from "./main";
+import readBackup from "readBackup";
 
 export interface MyPluginSettings {
 	pathToDigests: string;
@@ -58,11 +59,25 @@ export class SampleSettingTab extends PluginSettingTab {
 						const file = input.files?.[0];
 						if (!file) return;
 
-						this.plugin.settings.pathToBackup = (file as any).path;
+						const path = (file as any).path;
+						this.plugin.settings.pathToBackup = path;
+
 						this.display();
 						await this.plugin.saveSettings();
 					};
 					input.click();
+				}),
+			);
+
+		new Setting(containerEl)
+			.setName("Generate Notes From Digests")
+			.setDesc(
+				"Click once you have your backup file ready and we will create Notes based on your digests.",
+			)
+			.addButton((button) =>
+				button.setButtonText("Generate").onClick(() => {
+					const path = this.plugin.settings.pathToBackup;
+					readBackup(path);
 				}),
 			);
 	}
