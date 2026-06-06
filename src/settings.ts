@@ -77,7 +77,7 @@ export class SampleSettingTab extends PluginSettingTab {
 			.addButton((button) =>
 				button.setButtonText("Generate").onClick(() => {
 					const path = this.plugin.settings.pathToBackup;
-					readBackup(path);
+					readBackup(path, this.app);
 				}),
 			);
 	}

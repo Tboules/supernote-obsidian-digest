@@ -1,30 +1,50 @@
 import JSZip from "jszip";
 import * as fs from "fs";
+import { App } from "obsidian";
 
-export default async function readBackup(path: string) {
+type KnowledgeEntry = {
+	commentHandwriteName: string;
+	commentStr: string;
+	content: string;
+	creationTime: number;
+	dataMD5: string;
+	handwriteMD5: string;
+	id: number;
+	knowledgeBaseUniqueAttribute: string;
+	lastModifiedTime: number;
+	metadata: string;
+	pendingSync: boolean;
+	serviceId: number;
+	sourcePage: string;
+	sourcePath: string;
+	sourceType: number;
+	state: number;
+	syncLock: boolean;
+	syncState: number;
+};
+
+export default async function readBackup(path: string, app: App) {
 	console.log(path);
+
+	// check if Digests folder exists folder exists
+	if (!(await app.vault.adapter.exists("SN/Digests"))) {
+		await app.vault.createFolder("SN/Digests");
+	}
+
 	const buffer = fs.readFileSync(path);
 	const zip = await JSZip.loadAsync(buffer);
 
-	console.log(zip.forEach((p, f) => console.log({ p, f })));
-
-	const knowledgeFile = JSON.parse(
+	const knowledgeFile: KnowledgeEntry[] = JSON.parse(
 		(await zip.file("backup/DIGEST/knowledge.json")?.async("string")) ??
 			"[]",
 	);
 
-	console.log(knowledgeFile);
-
-	knowledgeFile.forEach(async (knowledge: any) => {
-		console.log(knowledge.commentHandwriteName);
-
+	knowledgeFile.forEach((knowledge) => {
 		const markPath = "backup/DIGEST/handwrite/";
 
-		const markFile = await zip.file(
-			markPath + knowledge.commentHandwriteName,
-		);
+		const markFile = zip.file(markPath + knowledge.commentHandwriteName);
 
-		console.log(markFile);
+		console.log({ knowledge, markFile });
 	});
 
 	return path;
