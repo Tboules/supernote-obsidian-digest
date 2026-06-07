@@ -7,7 +7,7 @@ created_on: <CREATED_ON>
 MOC :: [[supernote_digests]]
 up :: [[<SOURCE>]]
 
-# <TITLE>
+<!--<SOURCE_ID>-->
 
 > <HIGHLIGHT>
 
