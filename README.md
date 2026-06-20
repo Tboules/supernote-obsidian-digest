@@ -6,7 +6,7 @@ There will be two main folder structures that you can choose in the settings.
 
 1. Automic Notes
     - This will break down each digest into it's own note and tag the text
-2. Text Notes
+2. Document Notes
     - This will create a md file for each text and save all digests into that one MD file per text
 
 ## Initial Research and Rough Plan
