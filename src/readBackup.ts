@@ -75,6 +75,7 @@ export default async function readBackup(
 		const markFile = zip.file(markPath + knowledge.commentHandwriteName);
 		// Understand, what is a buffer? what is a uint8array
 		const markBuffer = await markFile?.async("uint8array");
+		const imagePath = `${defaultImagesPath}/${noteUniqueId}.png`;
 
 		//to-do convert markfile to PNG in order to include it in note
 		if (markBuffer) {
@@ -83,10 +84,7 @@ export default async function readBackup(
 
 			const pngBuffer = encodePng(images[0]!);
 			try {
-				await app.vault.createBinary(
-					defaultImagesPath + `/${noteUniqueId}.png`,
-					pngBuffer,
-				);
+				await app.vault.createBinary(imagePath, pngBuffer);
 			} catch (error) {
 				console.log(error);
 			}
@@ -109,7 +107,8 @@ export default async function readBackup(
 				new Date(knowledge.creationTime).toISOString(),
 			)
 			.replace("<HIGHLIGHT>", knowledge.content)
-			.replace("<SOURCE_ID>", noteUniqueId);
+			.replace("<SOURCE_ID>", noteUniqueId)
+			.replace("IMAGE_PATH", imagePath);
 
 		//to-do Check template type, Atomic Notes vs Document Notes
 		const notePath =

@@ -10,4 +10,6 @@ up :: [[<SOURCE>]]
 
 > <HIGHLIGHT>
 
+![handwritten note](IMAGE_PATH)
+
 ---
