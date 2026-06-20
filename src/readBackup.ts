@@ -1,8 +1,10 @@
 import JSZip from "jszip";
 import * as fs from "fs";
 import * as path from "path";
-import { App, FileSystemAdapter, TFile, TFolder } from "obsidian";
-import MyPlugin from "main";
+import { App, FileSystemAdapter, TFile } from "obsidian";
+import { SupernoteX, toImage } from "supernote-typescript";
+import MyPlugin from "./main";
+import { encodePng } from "image-js";
 
 type KnowledgeEntry = {
 	commentHandwriteName: string;
@@ -30,12 +32,18 @@ export default async function readBackup(
 	app: App,
 	plugin: MyPlugin,
 ) {
+	console.log("generate func");
 	const defaultFolderPath = "SN/Digests";
+	const defaultImagesPath = "SN/Images";
 
 	// check if Digests folder exists folder exists
 	let digestFolder = app.vault.getFolderByPath(defaultFolderPath);
 	if (!digestFolder) {
 		digestFolder = await app.vault.createFolder(defaultFolderPath);
+	}
+
+	if (!app.vault.getFolderByPath(defaultImagesPath)) {
+		await app.vault.createFolder(defaultImagesPath);
 	}
 
 	//read the backup file
@@ -65,8 +73,24 @@ export default async function readBackup(
 		// find mark file
 		const markPath = "backup/DIGEST/handwrite/";
 		const markFile = zip.file(markPath + knowledge.commentHandwriteName);
+		// Understand, what is a buffer? what is a uint8array
+		const markBuffer = await markFile?.async("uint8array");
 
 		//to-do convert markfile to PNG in order to include it in note
+		if (markBuffer) {
+			const mark = new SupernoteX(markBuffer);
+			const images = await toImage(mark);
+
+			const pngBuffer = encodePng(images[0]!);
+			try {
+				await app.vault.createBinary(
+					defaultImagesPath + `/${noteUniqueId}.png`,
+					pngBuffer,
+				);
+			} catch (error) {
+				console.log(error);
+			}
+		}
 
 		// Get Template
 		const templatePath = path.join(
@@ -92,7 +116,6 @@ export default async function readBackup(
 			defaultFolderPath +
 			"/" +
 			knowledge.commentHandwriteName.replace(".mark", Date.now() + ".md");
-		console.log(notePath);
 
 		try {
 			await app.vault.create(notePath, dataFilledTemplate);

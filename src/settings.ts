@@ -1,6 +1,6 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 import MyPlugin from "./main";
-import readBackup from "readBackup";
+import readBackup from "./readBackup";
 
 export interface MyPluginSettings {
 	pathToDigests: string;
