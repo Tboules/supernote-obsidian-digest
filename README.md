@@ -27,7 +27,17 @@ On the second backup upload, how will I make sure not to upload stale notes?
 
 - [x] create type for knowledge json file
 - [x] create folder in Obsidian
-- [ ] create template for notes
-- [ ] create notes based on the knowledge file
-- [ ] make sure notes do not get recreated
-- [ ] add in the mark files into the notes
+- [x] create template for notes
+- [x] create notes based on the knowledge file
+- [x] make sure notes do not get recreated
+- [x] add in the mark files into the notes
+
+- [ ] Create setting to allow users to choose which note structure they want
+- [ ] Create docs and details within settings to inform users how to find backup file
+
+- [ ] Create better structure around Atomic Notes
+    - [ ] create an atlas within the supernote-digest folder
+    - [ ] create MOC template for each book
+    - [ ] create right and left buttons in template
+
+- [ ] Create structure for notes organized by document
