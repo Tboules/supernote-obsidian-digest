@@ -32,7 +32,9 @@ On the second backup upload, how will I make sure not to upload stale notes?
 - [x] make sure notes do not get recreated
 - [x] add in the mark files into the notes
 
-- [ ] Create setting to allow users to choose which note structure they want
+- [x] Create setting to allow users to choose which note structure they want
+- [ ] Figure out the Digest Folder Setting
+- [ ] Create an Image Folder Setting
 - [ ] Create docs and details within settings to inform users how to find backup file
 
 - [ ] Create better structure around Atomic Notes

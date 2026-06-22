@@ -4,12 +4,16 @@ import readBackup from "./readBackup";
 
 export interface MyPluginSettings {
 	pathToDigests: string;
+	pathToImages: string;
 	pathToBackup: string;
+	noteOrgStyle: "atomic" | "document";
 }
 
 export const DEFAULT_SETTINGS: MyPluginSettings = {
-	pathToDigests: "add a suggested path here",
+	pathToDigests: "SN/Digests",
+	pathToImages: "SN/Images",
 	pathToBackup: "add a suggested path here",
+	noteOrgStyle: "document",
 };
 
 export class SampleSettingTab extends PluginSettingTab {
@@ -26,7 +30,7 @@ export class SampleSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName("Digests Folder")
+			.setName("Path to Digests")
 			.setDesc("Where would you like your Digests saved?")
 			.addText((text) =>
 				text
@@ -37,6 +41,46 @@ export class SampleSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					}),
 			);
+
+		new Setting(containerEl)
+			.setName("Path to Images")
+			.setDesc(
+				"Where should we save the images of your handwritten notes?",
+			)
+			.addText((text) =>
+				text
+					.setPlaceholder("Path/To/Images")
+					.setValue(this.plugin.settings.pathToImages)
+					.onChange(async (value) => {
+						this.plugin.settings.pathToImages = value;
+						await this.plugin.saveSettings();
+					}),
+			);
+
+		const noteOrgSetting = new Setting(containerEl)
+			.setName("Note Organization Style")
+			.setDesc(
+				"Would you like to organize your notes using the Atomic note structure where each Digest has it's own individual markdown file, or would you like to organize your notes by document where all your Digests for a document will be in a single file.",
+			);
+
+		noteOrgSetting.controlEl.createSpan({
+			text: "Atomic",
+			attr: { style: "margin-left: 1rem;" },
+		});
+
+		noteOrgSetting.addToggle((toggle) => {
+			return toggle
+				.setValue(this.plugin.settings.noteOrgStyle === "document")
+				.onChange(async (value) => {
+					this.plugin.settings.noteOrgStyle = value
+						? "document"
+						: "atomic";
+
+					await this.plugin.saveSettings();
+				});
+		});
+
+		noteOrgSetting.controlEl.createSpan({ text: "Document" });
 
 		new Setting(containerEl)
 			.setName("Path to Backup File")
@@ -78,6 +122,19 @@ export class SampleSettingTab extends PluginSettingTab {
 				button.setButtonText("Generate").onClick(() => {
 					const path = this.plugin.settings.pathToBackup;
 					readBackup(path, this.app, this.plugin);
+				}),
+			);
+
+		new Setting(containerEl)
+			.setName("Return to Default Settings")
+			.setDesc("Click to return to the default settings")
+			.addButton((button) =>
+				button.setButtonText("Reset Settings").onClick(async () => {
+					this.plugin.settings = {
+						...DEFAULT_SETTINGS,
+					};
+					await this.plugin.saveSettings();
+					this.display();
 				}),
 			);
 	}

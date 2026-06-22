@@ -32,7 +32,6 @@ export default async function readBackup(
 	app: App,
 	plugin: MyPlugin,
 ) {
-	console.log("generate func");
 	const defaultFolderPath = "SN/Digests";
 	const defaultImagesPath = "SN/Images";
 
