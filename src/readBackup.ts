@@ -1,7 +1,7 @@
 import JSZip from "jszip";
 import * as fs from "fs";
 import * as path from "path";
-import { App, FileSystemAdapter, TFile } from "obsidian";
+import { App, FileSystemAdapter, TFile, TFolder } from "obsidian";
 import { SupernoteX, toImage } from "supernote-typescript";
 import MyPlugin from "./main";
 import { encodePng } from "image-js";
@@ -26,6 +26,19 @@ type KnowledgeEntry = {
 	syncLock: boolean;
 	syncState: number;
 };
+
+function atomicNoteExists(
+	digestFolder: TFolder,
+	app: App,
+	noteUniqueId: string,
+): boolean {
+	return digestFolder.children.some((f) => {
+		if (!(f instanceof TFile)) return false;
+
+		const cache = app.metadataCache.getFileCache(f);
+		return cache?.frontmatter?.["source_id"] == noteUniqueId;
+	});
+}
 
 export default async function readBackup(
 	pathToBackup: string,
@@ -60,12 +73,13 @@ export default async function readBackup(
 		const noteUniqueId = `${knowledge.dataMD5}-${knowledge.creationTime}`;
 
 		// check if file already exists
-		const noteExists = digestFolder.children.some((f) => {
-			if (!(f instanceof TFile)) return false;
+		let noteExists = atomicNoteExists(digestFolder, app, noteUniqueId);
 
-			const cache = app.metadataCache.getFileCache(f);
-			return cache?.frontmatter?.["source_id"] == noteUniqueId;
-		});
+		if (plugin.settings.noteOrgStyle == "document") {
+			//get the file
+			//if file doesn't exist noteExists = false
+			//check file for note ID
+		}
 
 		if (noteExists) continue;
 
@@ -119,10 +133,11 @@ export default async function readBackup(
 			.replace("<HIGHLIGHT>", knowledge.content)
 			.replace("IMAGE_PATH", imagePath);
 
-		console.log(filledTemplateBody);
-
-		const finalFilledTemplate =
-			filledTemplateHeader.concat(filledTemplateBody);
+		const finalFilledTemplate = filledTemplateHeader.concat(
+			"\n",
+			"\n",
+			filledTemplateBody,
+		);
 
 		//to-do Check template type, Atomic Notes vs Document Notes
 		const notePath =
