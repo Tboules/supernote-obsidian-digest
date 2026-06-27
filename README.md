@@ -33,13 +33,14 @@ On the second backup upload, how will I make sure not to upload stale notes?
 - [x] add in the mark files into the notes
 
 - [x] Create setting to allow users to choose which note structure they want
-- [ ] Figure out the Digest Folder Setting
-- [ ] Create an Image Folder Setting
-- [ ] Create docs and details within settings to inform users how to find backup file
+- [x] Figure out the Digest Folder Setting
+- [x] Create an Image Folder Setting
+
+- [ ] Create structure for notes organized by document
 
 - [ ] Create better structure around Atomic Notes
     - [ ] create an atlas within the supernote-digest folder
     - [ ] create MOC template for each book
     - [ ] create right and left buttons in template
 
-- [ ] Create structure for notes organized by document
+- [ ] Create docs and details within settings to inform users how to find backup file

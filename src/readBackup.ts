@@ -32,8 +32,8 @@ export default async function readBackup(
 	app: App,
 	plugin: MyPlugin,
 ) {
-	const defaultFolderPath = "SN/Digests";
-	const defaultImagesPath = "SN/Images";
+	const defaultFolderPath = plugin.settings.pathToDigests;
+	const defaultImagesPath = plugin.settings.pathToImages;
 
 	// check if Digests folder exists folder exists
 	let digestFolder = app.vault.getFolderByPath(defaultFolderPath);
@@ -89,25 +89,40 @@ export default async function readBackup(
 			}
 		}
 
-		// Get Template
-		const templatePath = path.join(
+		// Get Template Header
+		const templateHeaderPath = path.join(
+			(app.vault.adapter as FileSystemAdapter).getBasePath(),
+			plugin.manifest.dir ?? "",
+			"template/digestHeader.md",
+		);
+
+		// Get Template Body
+		const templateBodyPath = path.join(
 			(app.vault.adapter as FileSystemAdapter).getBasePath(),
 			plugin.manifest.dir ?? "",
 			"template/digest.md",
 		);
-		const template = fs.readFileSync(templatePath, "utf-8");
+		const templateHeader = fs.readFileSync(templateHeaderPath, "utf-8");
+		const templateBody = fs.readFileSync(templateBodyPath, "utf-8");
 
 		// Fill In Template
-		const dataFilledTemplate = template
+		const filledTemplateHeader = templateHeader
 			.replace(/<SOURCE>/g, knowledge.sourcePath)
 			.replace("<SOURCE_PAGE>", knowledge.sourcePage)
 			.replace(
 				"<CREATED_ON>",
 				new Date(knowledge.creationTime).toISOString(),
 			)
+			.replace("<SOURCE_ID>", noteUniqueId);
+
+		const filledTemplateBody = templateBody
 			.replace("<HIGHLIGHT>", knowledge.content)
-			.replace("<SOURCE_ID>", noteUniqueId)
 			.replace("IMAGE_PATH", imagePath);
+
+		console.log(filledTemplateBody);
+
+		const finalFilledTemplate =
+			filledTemplateHeader.concat(filledTemplateBody);
 
 		//to-do Check template type, Atomic Notes vs Document Notes
 		const notePath =
@@ -116,7 +131,7 @@ export default async function readBackup(
 			knowledge.commentHandwriteName.replace(".mark", Date.now() + ".md");
 
 		try {
-			await app.vault.create(notePath, dataFilledTemplate);
+			await app.vault.create(notePath, finalFilledTemplate);
 		} catch (err) {
 			console.log(err);
 		}
