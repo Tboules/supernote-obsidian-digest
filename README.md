@@ -46,3 +46,5 @@ On the second backup upload, how will I make sure not to upload stale notes?
     - [ ] create right and left buttons in template
 
 - [ ] Create docs and details within settings to inform users how to find backup file
+
+- [x] Get github action working
