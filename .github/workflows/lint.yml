@@ -28,7 +28,11 @@ jobs:
 
             - name: Install Submodule Dependencies
               working-directory: supernote-typescript
-              run: npm install --omit=dev
+              run: npm install --ignore-scripts
+
+            - name: Build submodule
+              working-directory: supernote-typescript
+              run: npm run build
 
             - name: Link Submodule Globally
               working-directory: supernote-typescript
