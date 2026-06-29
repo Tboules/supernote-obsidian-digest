@@ -75,7 +75,7 @@ async function createMarkImageFile(
 	}
 }
 
-export default async function readBackup(
+export default async function extractDigestsFromBackup(
 	pathToBackup: string,
 	app: App,
 	plugin: MyPlugin,

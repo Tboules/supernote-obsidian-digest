@@ -1,6 +1,6 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 import MyPlugin from "./main";
-import readBackup from "./readBackup";
+import extractDigestsFromBackup from "./readBackup";
 
 export interface MyPluginSettings {
 	pathToDigests: string;
@@ -121,7 +121,7 @@ export class MainSettingsTap extends PluginSettingTab {
 			.addButton((button) =>
 				button.setButtonText("Generate").onClick(() => {
 					const path = this.plugin.settings.pathToBackup;
-					readBackup(path, this.app, this.plugin);
+					extractDigestsFromBackup(path, this.app, this.plugin);
 				}),
 			);
 
