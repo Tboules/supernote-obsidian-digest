@@ -1,6 +1,6 @@
 <!-- <SOURCE_ID> -->
 
-> <HIGHLIGHT>
+> _<HIGHLIGHT>_
 
 ![handwritten note](IMAGE_PATH)
 
