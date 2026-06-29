@@ -36,7 +36,9 @@ On the second backup upload, how will I make sure not to upload stale notes?
 - [x] Figure out the Digest Folder Setting
 - [x] Create an Image Folder Setting
 
-- [ ] Create structure for notes organized by document
+- [x] Create structure for notes organized by document
+    - [ ] fix header of file
+    - [ ] Keep certain meta data like page number and created on on the note itself rather than the header
 
 - [ ] Create better structure around Atomic Notes
     - [ ] create an atlas within the supernote-digest folder

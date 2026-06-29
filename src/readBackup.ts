@@ -127,12 +127,15 @@ export default async function readBackup(
 
 		// Create Mark Image
 		const imagePath = `${defaultImagesPath}/${noteUniqueId}.png`;
-		await createMarkImageFile(
-			knowledge.commentHandwriteName,
-			zip,
-			imagePath,
-			app,
-		);
+		const imageExists = app.vault.getFileByPath(imagePath);
+		if (!imageExists) {
+			await createMarkImageFile(
+				knowledge.commentHandwriteName,
+				zip,
+				imagePath,
+				app,
+			);
+		}
 
 		// Get Template Header
 		const templateHeaderPath = path.join(
@@ -207,6 +210,16 @@ export default async function readBackup(
 			}
 
 			//read docFile
+			await app.vault.process(docFile, (content) => {
+				return (
+					content +
+					"\n\n" +
+					templateBody
+						.replace("<HIGHLIGHT>", knowledge.content)
+						.replace("IMAGE_PATH", imagePath)
+						.replace("<SOURCE_ID>", noteUniqueId)
+				);
+			});
 		}
 	}
 
