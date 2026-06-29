@@ -23,6 +23,17 @@ jobs:
                   node-version: ${{ matrix.node-version }}
                   cache: "npm"
             - run: npm ci
+
+			- name: Install Submodule Dependencies
+			- working-directory: supernote-typescript
+			- run: npm install --omit=dev
+
+			- name: Link Submodule Globally 
+			- working-directory: supernote-typescript
+			- run: npm link
+
+			- name: Link Supernote Typescript into Project
+			- run: npm link supernote-typescript
+
             - run: npm run build --if-present
             - run: npm run lint
-
