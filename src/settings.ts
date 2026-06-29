@@ -16,7 +16,7 @@ export const DEFAULT_SETTINGS: MyPluginSettings = {
 	noteOrgStyle: "document",
 };
 
-export class SampleSettingTab extends PluginSettingTab {
+export class MainSettingsTap extends PluginSettingTab {
 	plugin: MyPlugin;
 
 	constructor(app: App, plugin: MyPlugin) {
