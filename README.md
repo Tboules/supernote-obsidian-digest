@@ -41,8 +41,8 @@ On the second backup upload, how will I make sure not to upload stale notes?
     - [x] Keep certain meta data like page number and created on on the note itself rather than the header
 
 - [ ] Create better structure around Atomic Notes
-    - [ ] create an atlas within the supernote-digest folder
-    - [ ] create MOC template for each book
+    - [x] create an atlas within the supernote-digest folder
+    - [>] create MOC template for each book
     - [ ] create right and left buttons in template
 
 - [ ] Create docs and details within settings to inform users how to find backup file
