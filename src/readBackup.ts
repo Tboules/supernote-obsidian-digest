@@ -75,6 +75,29 @@ async function createMarkImageFile(
 	}
 }
 
+function humanReadableDateTime(creationTime: number) {
+	return new Date(creationTime).toLocaleString("en-US", {
+		year: "numeric",
+		month: "long",
+		day: "numeric",
+		hour: "2-digit",
+		minute: "2-digit",
+	});
+}
+
+function retrieveTemplate(
+	templatePath: string,
+	plugin: MyPlugin,
+	app: App,
+): string {
+	const relativeTemplatePath = path.join(
+		(app.vault.adapter as FileSystemAdapter).getBasePath(),
+		plugin.manifest.dir ?? "",
+		templatePath,
+	);
+	return fs.readFileSync(relativeTemplatePath, "utf-8");
+}
+
 export default async function extractDigestsFromBackup(
 	pathToBackup: string,
 	app: App,
@@ -82,6 +105,7 @@ export default async function extractDigestsFromBackup(
 ) {
 	const defaultFolderPath = plugin.settings.pathToDigests;
 	const defaultImagesPath = plugin.settings.pathToImages;
+	const atlasFolderPath = plugin.settings.pathToAtlas;
 
 	// check if Digests folder exists folder exists
 	let digestFolder = app.vault.getFolderByPath(defaultFolderPath);
@@ -89,8 +113,27 @@ export default async function extractDigestsFromBackup(
 		digestFolder = await app.vault.createFolder(defaultFolderPath);
 	}
 
+	// check for images folder, create if it doesn't exist
 	if (!app.vault.getFolderByPath(defaultImagesPath)) {
 		await app.vault.createFolder(defaultImagesPath);
+	}
+
+	// check for supernote_digests and create if not exists
+	if (!app.vault.getFileByPath(`${atlasFolderPath}/supernote_digests.md`)) {
+		await app.vault.createFolder(atlasFolderPath);
+
+		const atlasTemplate = retrieveTemplate(
+			"template/atlas_template.md",
+			plugin,
+			app,
+		);
+
+		await app.vault.create(
+			`${atlasFolderPath}/supernote_digests.md`,
+			atlasTemplate
+				.replace(/{{title}}/g, "supernote_digests")
+				.replace("up :: {{head}}", ""),
+		);
 	}
 
 	//read the backup file
@@ -138,21 +181,20 @@ export default async function extractDigestsFromBackup(
 		}
 
 		//grab atomic template so it can be filled
-		const atomicTemplatePath = path.join(
-			(app.vault.adapter as FileSystemAdapter).getBasePath(),
-			plugin.manifest.dir ?? "",
+		const atomicTemplate = retrieveTemplate(
 			"template/atomic_template.md",
+			plugin,
+			app,
 		);
-		const atomicTemplate = fs.readFileSync(atomicTemplatePath, "utf-8");
 
 		if (plugin.settings.noteOrgStyle == "atomic") {
 			// Fill In Templates for Atomic Notes
 			const filledAtomicTemplate = atomicTemplate
-				.replace(/<SOURCE>/g, knowledge.sourcePath)
+				.replace(/<SOURCE>/g, docName ?? knowledge.sourcePath)
 				.replace("<SOURCE_PAGE>", knowledge.sourcePage)
 				.replace(
 					"<CREATED_ON>",
-					new Date(knowledge.creationTime).toDateString(),
+					humanReadableDateTime(knowledge.creationTime),
 				)
 				.replace("<SOURCE_ID>", noteUniqueId)
 				.replace("<HIGHLIGHT>", knowledge.content)
@@ -175,27 +217,25 @@ export default async function extractDigestsFromBackup(
 		}
 
 		// Get Template Header
-		const templateHeaderPath = path.join(
-			(app.vault.adapter as FileSystemAdapter).getBasePath(),
-			plugin.manifest.dir ?? "",
-			"template/digestHeader.md",
+		const templateDocumentHeader = retrieveTemplate(
+			"template/document_header.md",
+			plugin,
+			app,
 		);
-		const templateHeader = fs.readFileSync(templateHeaderPath, "utf-8");
-
 		// Get Template Body
-		const templateBodyPath = path.join(
-			(app.vault.adapter as FileSystemAdapter).getBasePath(),
-			plugin.manifest.dir ?? "",
+		const templateBody = retrieveTemplate(
 			"template/digest.md",
+			plugin,
+			app,
 		);
-		const templateBody = fs.readFileSync(templateBodyPath, "utf-8");
 
 		if (plugin.settings.noteOrgStyle == "document") {
 			//check if the header exists
 			if (!docFile) {
-				const filledTemplateHeader = templateHeader
-					.replace(/<SOURCE>/g, docName ?? knowledge.sourcePath)
-					.replace("<SOURCE_PAGE>", knowledge.sourcePage);
+				const filledTemplateHeader = templateDocumentHeader.replace(
+					/<SOURCE>/g,
+					docName ?? knowledge.sourcePath,
+				);
 
 				docFile = await app.vault.create(
 					docFilePath,
@@ -212,6 +252,11 @@ export default async function extractDigestsFromBackup(
 						.replace("<HIGHLIGHT>", knowledge.content)
 						.replace("IMAGE_PATH", imagePath)
 						.replace("<SOURCE_ID>", noteUniqueId)
+						.replace("<SOURCE_PAGE>", knowledge.sourcePage)
+						.replace(
+							"<CREATED_ON>",
+							humanReadableDateTime(knowledge.creationTime),
+						)
 				);
 			});
 		}

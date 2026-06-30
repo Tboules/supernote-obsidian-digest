@@ -5,6 +5,7 @@ import extractDigestsFromBackup from "./readBackup";
 export interface MyPluginSettings {
 	pathToDigests: string;
 	pathToImages: string;
+	pathToAtlas: string;
 	pathToBackup: string;
 	noteOrgStyle: "atomic" | "document";
 }
@@ -12,6 +13,7 @@ export interface MyPluginSettings {
 export const DEFAULT_SETTINGS: MyPluginSettings = {
 	pathToDigests: "SN/Digests",
 	pathToImages: "SN/Images",
+	pathToAtlas: "SN/Atlas",
 	pathToBackup: "add a suggested path here",
 	noteOrgStyle: "document",
 };
@@ -28,59 +30,6 @@ export class MainSettingsTap extends PluginSettingTab {
 		const { containerEl } = this;
 
 		containerEl.empty();
-
-		new Setting(containerEl)
-			.setName("Path to Digests")
-			.setDesc("Where would you like your Digests saved?")
-			.addText((text) =>
-				text
-					.setPlaceholder("Path/To/Digests")
-					.setValue(this.plugin.settings.pathToDigests)
-					.onChange(async (value) => {
-						this.plugin.settings.pathToDigests = value;
-						await this.plugin.saveSettings();
-					}),
-			);
-
-		new Setting(containerEl)
-			.setName("Path to Images")
-			.setDesc(
-				"Where should we save the images of your handwritten notes?",
-			)
-			.addText((text) =>
-				text
-					.setPlaceholder("Path/To/Images")
-					.setValue(this.plugin.settings.pathToImages)
-					.onChange(async (value) => {
-						this.plugin.settings.pathToImages = value;
-						await this.plugin.saveSettings();
-					}),
-			);
-
-		const noteOrgSetting = new Setting(containerEl)
-			.setName("Note Organization Style")
-			.setDesc(
-				"Would you like to organize your notes using the Atomic note structure where each Digest has it's own individual markdown file, or would you like to organize your notes by document where all your Digests for a document will be in a single file.",
-			);
-
-		noteOrgSetting.controlEl.createSpan({
-			text: "Atomic",
-			attr: { style: "margin-left: 1rem;" },
-		});
-
-		noteOrgSetting.addToggle((toggle) => {
-			return toggle
-				.setValue(this.plugin.settings.noteOrgStyle === "document")
-				.onChange(async (value) => {
-					this.plugin.settings.noteOrgStyle = value
-						? "document"
-						: "atomic";
-
-					await this.plugin.saveSettings();
-				});
-		});
-
-		noteOrgSetting.controlEl.createSpan({ text: "Document" });
 
 		new Setting(containerEl)
 			.setName("Path to Backup File")
@@ -111,6 +60,74 @@ export class MainSettingsTap extends PluginSettingTab {
 					};
 					input.click();
 				}),
+			);
+
+		const noteOrgSetting = new Setting(containerEl)
+			.setName("Note Organization Style")
+			.setDesc(
+				"Would you like to organize your notes using the Atomic note structure where each Digest has it's own individual markdown file, or would you like to organize your notes by document where all your Digests for a document will be in a single file.",
+			);
+
+		noteOrgSetting.controlEl.createSpan({
+			text: "Atomic",
+			attr: { style: "margin-left: 1rem;" },
+		});
+
+		noteOrgSetting.addToggle((toggle) => {
+			return toggle
+				.setValue(this.plugin.settings.noteOrgStyle === "document")
+				.onChange(async (value) => {
+					this.plugin.settings.noteOrgStyle = value
+						? "document"
+						: "atomic";
+
+					await this.plugin.saveSettings();
+				});
+		});
+
+		noteOrgSetting.controlEl.createSpan({ text: "Document" });
+
+		new Setting(containerEl)
+			.setName("Path to Digests")
+			.setDesc("Where would you like your Digests saved?")
+			.addText((text) =>
+				text
+					.setPlaceholder("Path/To/Digests")
+					.setValue(this.plugin.settings.pathToDigests)
+					.onChange(async (value) => {
+						this.plugin.settings.pathToDigests = value;
+						await this.plugin.saveSettings();
+					}),
+			);
+
+		new Setting(containerEl)
+			.setName("Path to Atlas Files / Maps of Content")
+			.setDesc(
+				"These files will organize your digest into nodes that will easily tie into together in your tree view. This is especially helpful if you choose to organize your notes in the Atomic style.",
+			)
+			.addText((text) =>
+				text
+					.setPlaceholder("Path/To/Atlas")
+					.setValue(this.plugin.settings.pathToAtlas)
+					.onChange(async (value) => {
+						this.plugin.settings.pathToAtlas = value;
+						await this.plugin.saveSettings();
+					}),
+			);
+
+		new Setting(containerEl)
+			.setName("Path to Images")
+			.setDesc(
+				"Where should we save the images of your handwritten notes?",
+			)
+			.addText((text) =>
+				text
+					.setPlaceholder("Path/To/Images")
+					.setValue(this.plugin.settings.pathToImages)
+					.onChange(async (value) => {
+						this.plugin.settings.pathToImages = value;
+						await this.plugin.saveSettings();
+					}),
 			);
 
 		new Setting(containerEl)
