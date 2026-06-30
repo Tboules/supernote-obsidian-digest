@@ -137,6 +137,43 @@ export default async function extractDigestsFromBackup(
 			);
 		}
 
+		//grab atomic template so it can be filled
+		const atomicTemplatePath = path.join(
+			(app.vault.adapter as FileSystemAdapter).getBasePath(),
+			plugin.manifest.dir ?? "",
+			"template/atomic_template.md",
+		);
+		const atomicTemplate = fs.readFileSync(atomicTemplatePath, "utf-8");
+
+		if (plugin.settings.noteOrgStyle == "atomic") {
+			// Fill In Templates for Atomic Notes
+			const filledAtomicTemplate = atomicTemplate
+				.replace(/<SOURCE>/g, knowledge.sourcePath)
+				.replace("<SOURCE_PAGE>", knowledge.sourcePage)
+				.replace(
+					"<CREATED_ON>",
+					new Date(knowledge.creationTime).toDateString(),
+				)
+				.replace("<SOURCE_ID>", noteUniqueId)
+				.replace("<HIGHLIGHT>", knowledge.content)
+				.replace("IMAGE_PATH", imagePath);
+
+			//to-do Check template type, Atomic Notes vs Document Notes
+			const notePath =
+				defaultFolderPath +
+				"/" +
+				knowledge.commentHandwriteName.replace(
+					".mark",
+					Date.now() + ".md",
+				);
+
+			try {
+				await app.vault.create(notePath, filledAtomicTemplate);
+			} catch (err) {
+				console.error(err);
+			}
+		}
+
 		// Get Template Header
 		const templateHeaderPath = path.join(
 			(app.vault.adapter as FileSystemAdapter).getBasePath(),
@@ -153,55 +190,12 @@ export default async function extractDigestsFromBackup(
 		);
 		const templateBody = fs.readFileSync(templateBodyPath, "utf-8");
 
-		if (plugin.settings.noteOrgStyle == "atomic") {
-			// Fill In Templates for Atomic Notes
-			const filledTemplateHeader = templateHeader
-				.replace(/<SOURCE>/g, knowledge.sourcePath)
-				.replace("<SOURCE_PAGE>", knowledge.sourcePage)
-				.replace(
-					"<CREATED_ON>",
-					new Date(knowledge.creationTime).toISOString(),
-				)
-				.replace("<SOURCE_ID>", noteUniqueId);
-
-			const filledTemplateBody = templateBody
-				.replace("<HIGHLIGHT>", knowledge.content)
-				.replace("IMAGE_PATH", imagePath)
-				.replace("<SOURCE_ID>", noteUniqueId);
-
-			const finalFilledTemplate = filledTemplateHeader.concat(
-				"\n",
-				"\n",
-				filledTemplateBody,
-			);
-
-			//to-do Check template type, Atomic Notes vs Document Notes
-			const notePath =
-				defaultFolderPath +
-				"/" +
-				knowledge.commentHandwriteName.replace(
-					".mark",
-					Date.now() + ".md",
-				);
-
-			try {
-				await app.vault.create(notePath, finalFilledTemplate);
-			} catch (err) {
-				console.log(err);
-			}
-		}
-
 		if (plugin.settings.noteOrgStyle == "document") {
-			console.log(docName);
 			//check if the header exists
 			if (!docFile) {
 				const filledTemplateHeader = templateHeader
 					.replace(/<SOURCE>/g, docName ?? knowledge.sourcePath)
-					.replace("<SOURCE_PAGE>", knowledge.sourcePage)
-					.replace(
-						"<CREATED_ON>",
-						new Date(knowledge.creationTime).toISOString(),
-					);
+					.replace("<SOURCE_PAGE>", knowledge.sourcePage);
 
 				docFile = await app.vault.create(
 					docFilePath,
