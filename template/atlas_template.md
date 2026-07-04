@@ -1,6 +1,6 @@
 # Map of Content for {{title}}
 
-up :: {{head}}
+up :: [[{{head}}]]
 
 ## Notes
 

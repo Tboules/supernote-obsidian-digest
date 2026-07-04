@@ -132,7 +132,7 @@ export default async function extractDigestsFromBackup(
 			`${atlasFolderPath}/supernote_digests.md`,
 			atlasTemplate
 				.replace(/{{title}}/g, "supernote_digests")
-				.replace("up :: {{head}}", ""),
+				.replace("up :: [[{{head}}]]", ""),
 		);
 	}
 
@@ -145,15 +145,25 @@ export default async function extractDigestsFromBackup(
 			"[]",
 	);
 
+	const documents: Record<string, TFile | null> = {};
+
 	//iterate through the knowledge.json file to find mark files
 	for (const knowledge of knowledgeFile) {
 		// generate unique id for each mark and then check if it already exists in our vault
 		const noteUniqueId = `${knowledge.dataMD5}-${knowledge.creationTime}`;
 
 		//get doc for document style notes
-		const docName = knowledge.sourcePath.split("/").at(-1)?.split(".")[0];
-		const docFilePath = `${defaultFolderPath}/${docName}.md`;
-		let docFile = app.vault.getFileByPath(docFilePath);
+		const docName =
+			knowledge.sourcePath.split("/").at(-1)?.split(".")[0] ??
+			knowledge.sourcePage;
+		//get docFile path based on atomic vs document style notes
+		let docFilePath = `${defaultFolderPath}/${docName}.md`;
+
+		if (plugin.settings.noteOrgStyle == "atomic") {
+			docFilePath = `${atlasFolderPath}/${docName}.md`;
+		}
+
+		documents[docName] = app.vault.getFileByPath(docFilePath);
 
 		// check if note has already been created
 		let noteExists = false;
@@ -162,7 +172,11 @@ export default async function extractDigestsFromBackup(
 		}
 
 		if (plugin.settings.noteOrgStyle == "document") {
-			noteExists = await documentNoteExists(docFile, app, noteUniqueId);
+			noteExists = await documentNoteExists(
+				documents[docName],
+				app,
+				noteUniqueId,
+			);
 		}
 
 		// note exists so skip note creation and mark file extraction
@@ -188,6 +202,23 @@ export default async function extractDigestsFromBackup(
 		);
 
 		if (plugin.settings.noteOrgStyle == "atomic") {
+			// check for atlas document
+			// if it doesn't exist than create it and add the MOC template
+			if (!documents[docName]) {
+				const documentMocTemplate = retrieveTemplate(
+					"template/atlas_template.md",
+					plugin,
+					app,
+				);
+
+				documents[docName] = await app.vault.create(
+					docFilePath,
+					documentMocTemplate
+						.replace("{{head}}", "supernote_digests")
+						.replace(/{{title}}/g, docName),
+				);
+			}
+
 			// Fill In Templates for Atomic Notes
 			const filledAtomicTemplate = atomicTemplate
 				.replace(/<SOURCE>/g, docName ?? knowledge.sourcePath)
@@ -231,20 +262,20 @@ export default async function extractDigestsFromBackup(
 
 		if (plugin.settings.noteOrgStyle == "document") {
 			//check if the header exists
-			if (!docFile) {
+			if (!documents[docName]) {
 				const filledTemplateHeader = templateDocumentHeader.replace(
 					/<SOURCE>/g,
 					docName ?? knowledge.sourcePath,
 				);
 
-				docFile = await app.vault.create(
+				documents[docName] = await app.vault.create(
 					docFilePath,
 					filledTemplateHeader,
 				);
 			}
 
 			//read docFile
-			await app.vault.process(docFile, (content) => {
+			await app.vault.process(documents[docName], (content) => {
 				return (
 					content +
 					"\n\n" +
