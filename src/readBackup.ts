@@ -75,14 +75,23 @@ async function createMarkImageFile(
 	}
 }
 
-function humanReadableDateTime(creationTime: number) {
-	return new Date(creationTime).toLocaleString("en-US", {
+function humanReadableDateTime(
+	creationTime: number,
+	forFilePath: boolean = false,
+) {
+	let readableDateTime = new Date(creationTime).toLocaleString("en-US", {
 		year: "numeric",
 		month: "long",
 		day: "numeric",
 		hour: "2-digit",
 		minute: "2-digit",
+		second: "2-digit",
 	});
+
+	if (forFilePath) {
+		readableDateTime = readableDateTime.replace(/:/g, ".");
+	}
+	return readableDateTime;
 }
 
 function retrieveTemplate(
@@ -148,9 +157,10 @@ export default async function extractDigestsFromBackup(
 	const documents: Record<string, TFile | null> = {};
 
 	//iterate through the knowledge.json file to find mark files
-	for (const knowledge of knowledgeFile) {
+	for (const [index, knowledge] of knowledgeFile.entries()) {
 		// generate unique id for each mark and then check if it already exists in our vault
-		const noteUniqueId = `${knowledge.dataMD5}-${knowledge.creationTime}`;
+		const sourceId = knowledge.creationTime;
+		const dateBasedFileName = humanReadableDateTime(sourceId, true);
 
 		//get doc for document style notes
 		const docName =
@@ -168,14 +178,14 @@ export default async function extractDigestsFromBackup(
 		// check if note has already been created
 		let noteExists = false;
 		if (plugin.settings.noteOrgStyle == "atomic") {
-			noteExists = atomicNoteExists(digestFolder, app, noteUniqueId);
+			noteExists = atomicNoteExists(digestFolder, app, dateBasedFileName);
 		}
 
 		if (plugin.settings.noteOrgStyle == "document") {
 			noteExists = await documentNoteExists(
 				documents[docName],
 				app,
-				noteUniqueId,
+				dateBasedFileName,
 			);
 		}
 
@@ -183,7 +193,7 @@ export default async function extractDigestsFromBackup(
 		if (noteExists) continue;
 
 		// Create Mark Image
-		const imagePath = `${defaultImagesPath}/${noteUniqueId}.png`;
+		const imagePath = `${defaultImagesPath}/${sourceId}.png`;
 		const imageExists = app.vault.getFileByPath(imagePath);
 		if (!imageExists) {
 			await createMarkImageFile(
@@ -220,26 +230,18 @@ export default async function extractDigestsFromBackup(
 			}
 
 			// Fill In Templates for Atomic Notes
-			const filledAtomicTemplate = atomicTemplate
+			let filledAtomicTemplate = atomicTemplate
 				.replace(/<SOURCE>/g, docName ?? knowledge.sourcePath)
 				.replace("<SOURCE_PAGE>", knowledge.sourcePage)
 				.replace(
 					"<CREATED_ON>",
 					humanReadableDateTime(knowledge.creationTime),
 				)
-				.replace("<SOURCE_ID>", noteUniqueId)
+				.replace("<SOURCE_ID>", sourceId.toString())
 				.replace("<HIGHLIGHT>", knowledge.content)
 				.replace("IMAGE_PATH", imagePath);
 
-			//to-do Check template type, Atomic Notes vs Document Notes
-			const notePath =
-				defaultFolderPath +
-				"/" +
-				knowledge.commentHandwriteName.replace(
-					".mark",
-					Date.now() + ".md",
-				);
-
+			const notePath = `${defaultFolderPath}/${dateBasedFileName}.md`;
 			try {
 				await app.vault.create(notePath, filledAtomicTemplate);
 			} catch (err) {
@@ -282,7 +284,7 @@ export default async function extractDigestsFromBackup(
 					templateBody
 						.replace("<HIGHLIGHT>", knowledge.content)
 						.replace("IMAGE_PATH", imagePath)
-						.replace("<SOURCE_ID>", noteUniqueId)
+						.replace("<SOURCE_ID>", sourceId.toString())
 						.replace("<SOURCE_PAGE>", knowledge.sourcePage)
 						.replace(
 							"<CREATED_ON>",
