@@ -1,3 +1,3 @@
 up :: [[supernote_digests]]
 
-# Digests for <SOURCE>
+# Digests for {{SOURCE}}

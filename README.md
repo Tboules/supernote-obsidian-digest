@@ -40,13 +40,13 @@ On the second backup upload, how will I make sure not to upload stale notes?
     - [x] fix header of file
     - [x] Keep certain meta data like page number and created on on the note itself rather than the header
 
-- [ ] Create better structure around Atomic Notes
+- [x] Create better structure around Atomic Notes
     - [x] create an atlas within the supernote-digest folder
     - [x] create MOC template for each book
     - [ ] create right and left buttons in template | update, failed on brute forcing this, will have to org by doc and account for updating previous and next on new backup file
 
+- [x] create constants file to manage variables
 - [ ] create a progress bar as files are processing
-- [ ] create constants file to manage variables
 - [ ] see if there is a way to trim the empty space on the mark files
 - [ ] Create docs and details within settings to inform users how to find backup file
 - [ ] create a clean up function when switching settings for note style

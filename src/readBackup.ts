@@ -5,6 +5,13 @@ import { App, FileSystemAdapter, TFile, TFolder } from "obsidian";
 import { SupernoteX, toImage } from "supernote-typescript";
 import MyPlugin from "./main";
 import { encodePng } from "image-js";
+import {
+	HEAD_ATLAS_FILE,
+	PATH_TO_KNOWLEDGE_FILE,
+	PATH_TO_MARK_FILES,
+	TEMPLATE_PATHS,
+	TEMPLATE_VARIABLES,
+} from "./constants";
 
 type KnowledgeEntry = {
 	commentHandwriteName: string;
@@ -56,8 +63,7 @@ async function createMarkImageFile(
 	app: App,
 ) {
 	// find mark file
-	const markPath = "backup/DIGEST/handwrite/";
-	const markFile = zip.file(markPath + markName);
+	const markFile = zip.file(PATH_TO_MARK_FILES + markName);
 	// Understand, what is a buffer? what is a uint8array
 	const markBuffer = await markFile?.async("uint8array");
 
@@ -112,35 +118,33 @@ export default async function extractDigestsFromBackup(
 	app: App,
 	plugin: MyPlugin,
 ) {
-	const defaultFolderPath = plugin.settings.pathToDigests;
-	const defaultImagesPath = plugin.settings.pathToImages;
-	const atlasFolderPath = plugin.settings.pathToAtlas;
+	const { pathToAtlas, pathToImages, pathToDigests } = plugin.settings;
 
 	// check if Digests folder exists folder exists
-	let digestFolder = app.vault.getFolderByPath(defaultFolderPath);
+	let digestFolder = app.vault.getFolderByPath(pathToDigests);
 	if (!digestFolder) {
-		digestFolder = await app.vault.createFolder(defaultFolderPath);
+		digestFolder = await app.vault.createFolder(pathToDigests);
 	}
 
 	// check for images folder, create if it doesn't exist
-	if (!app.vault.getFolderByPath(defaultImagesPath)) {
-		await app.vault.createFolder(defaultImagesPath);
+	if (!app.vault.getFolderByPath(pathToImages)) {
+		await app.vault.createFolder(pathToImages);
 	}
 
 	// check for supernote_digests and create if not exists
-	if (!app.vault.getFileByPath(`${atlasFolderPath}/supernote_digests.md`)) {
-		await app.vault.createFolder(atlasFolderPath);
+	if (!app.vault.getFileByPath(`${pathToAtlas}/${HEAD_ATLAS_FILE}.md`)) {
+		await app.vault.createFolder(pathToAtlas);
 
 		const atlasTemplate = retrieveTemplate(
-			"template/atlas_template.md",
+			TEMPLATE_PATHS.atlas,
 			plugin,
 			app,
 		);
 
 		await app.vault.create(
-			`${atlasFolderPath}/supernote_digests.md`,
+			`${pathToAtlas}/${HEAD_ATLAS_FILE}.md`,
 			atlasTemplate
-				.replace(/{{title}}/g, "supernote_digests")
+				.replace(TEMPLATE_VARIABLES.atlasTitle, HEAD_ATLAS_FILE)
 				.replace("up :: [[{{head}}]]", ""),
 		);
 	}
@@ -150,14 +154,13 @@ export default async function extractDigestsFromBackup(
 	const zip = await JSZip.loadAsync(backupBuffer);
 
 	const knowledgeFile: KnowledgeEntry[] = JSON.parse(
-		(await zip.file("backup/DIGEST/knowledge.json")?.async("string")) ??
-			"[]",
+		(await zip.file(PATH_TO_KNOWLEDGE_FILE)?.async("string")) ?? "[]",
 	);
 
 	const documents: Record<string, TFile | null> = {};
 
 	//iterate through the knowledge.json file to find mark files
-	for (const [index, knowledge] of knowledgeFile.entries()) {
+	for (const knowledge of knowledgeFile) {
 		// generate unique id for each mark and then check if it already exists in our vault
 		const sourceId = knowledge.creationTime;
 		const dateBasedFileName = humanReadableDateTime(sourceId, true);
@@ -167,10 +170,10 @@ export default async function extractDigestsFromBackup(
 			knowledge.sourcePath.split("/").at(-1)?.split(".")[0] ??
 			knowledge.sourcePage;
 		//get docFile path based on atomic vs document style notes
-		let docFilePath = `${defaultFolderPath}/${docName}.md`;
+		let docFilePath = `${pathToDigests}/${docName}.md`;
 
 		if (plugin.settings.noteOrgStyle == "atomic") {
-			docFilePath = `${atlasFolderPath}/${docName}.md`;
+			docFilePath = `${pathToAtlas}/${docName}.md`;
 		}
 
 		documents[docName] = app.vault.getFileByPath(docFilePath);
@@ -193,7 +196,7 @@ export default async function extractDigestsFromBackup(
 		if (noteExists) continue;
 
 		// Create Mark Image
-		const imagePath = `${defaultImagesPath}/${sourceId}.png`;
+		const imagePath = `${pathToImages}/${sourceId}.png`;
 		const imageExists = app.vault.getFileByPath(imagePath);
 		if (!imageExists) {
 			await createMarkImageFile(
@@ -206,7 +209,7 @@ export default async function extractDigestsFromBackup(
 
 		//grab atomic template so it can be filled
 		const atomicTemplate = retrieveTemplate(
-			"template/atomic_template.md",
+			TEMPLATE_PATHS.atomic,
 			plugin,
 			app,
 		);
@@ -216,7 +219,7 @@ export default async function extractDigestsFromBackup(
 			// if it doesn't exist than create it and add the MOC template
 			if (!documents[docName]) {
 				const documentMocTemplate = retrieveTemplate(
-					"template/atlas_template.md",
+					TEMPLATE_PATHS.atlas,
 					plugin,
 					app,
 				);
@@ -224,24 +227,27 @@ export default async function extractDigestsFromBackup(
 				documents[docName] = await app.vault.create(
 					docFilePath,
 					documentMocTemplate
-						.replace("{{head}}", "supernote_digests")
-						.replace(/{{title}}/g, docName),
+						.replace(TEMPLATE_VARIABLES.atlasHead, HEAD_ATLAS_FILE)
+						.replace(TEMPLATE_VARIABLES.atlasTitle, docName),
 				);
 			}
 
 			// Fill In Templates for Atomic Notes
 			let filledAtomicTemplate = atomicTemplate
-				.replace(/<SOURCE>/g, docName ?? knowledge.sourcePath)
-				.replace("<SOURCE_PAGE>", knowledge.sourcePage)
 				.replace(
-					"<CREATED_ON>",
+					TEMPLATE_VARIABLES.source,
+					docName ?? knowledge.sourcePath,
+				)
+				.replace(TEMPLATE_VARIABLES.sourcePage, knowledge.sourcePage)
+				.replace(
+					TEMPLATE_VARIABLES.createdOn,
 					humanReadableDateTime(knowledge.creationTime),
 				)
-				.replace("<SOURCE_ID>", sourceId.toString())
-				.replace("<HIGHLIGHT>", knowledge.content)
-				.replace("IMAGE_PATH", imagePath);
+				.replace(TEMPLATE_VARIABLES.sourceId, sourceId.toString())
+				.replace(TEMPLATE_VARIABLES.highlight, knowledge.content)
+				.replace(TEMPLATE_VARIABLES.imagePath, imagePath);
 
-			const notePath = `${defaultFolderPath}/${dateBasedFileName}.md`;
+			const notePath = `${pathToDigests}/${dateBasedFileName}.md`;
 			try {
 				await app.vault.create(notePath, filledAtomicTemplate);
 			} catch (err) {
@@ -251,13 +257,13 @@ export default async function extractDigestsFromBackup(
 
 		// Get Template Header
 		const templateDocumentHeader = retrieveTemplate(
-			"template/document_header.md",
+			TEMPLATE_PATHS.docHead,
 			plugin,
 			app,
 		);
 		// Get Template Body
 		const templateBody = retrieveTemplate(
-			"template/digest.md",
+			TEMPLATE_PATHS.docBody,
 			plugin,
 			app,
 		);
@@ -266,7 +272,7 @@ export default async function extractDigestsFromBackup(
 			//check if the header exists
 			if (!documents[docName]) {
 				const filledTemplateHeader = templateDocumentHeader.replace(
-					/<SOURCE>/g,
+					TEMPLATE_VARIABLES.source,
 					docName ?? knowledge.sourcePath,
 				);
 
@@ -282,12 +288,21 @@ export default async function extractDigestsFromBackup(
 					content +
 					"\n\n" +
 					templateBody
-						.replace("<HIGHLIGHT>", knowledge.content)
-						.replace("IMAGE_PATH", imagePath)
-						.replace("<SOURCE_ID>", sourceId.toString())
-						.replace("<SOURCE_PAGE>", knowledge.sourcePage)
 						.replace(
-							"<CREATED_ON>",
+							TEMPLATE_VARIABLES.highlight,
+							knowledge.content,
+						)
+						.replace(TEMPLATE_VARIABLES.imagePath, imagePath)
+						.replace(
+							TEMPLATE_VARIABLES.sourceId,
+							sourceId.toString(),
+						)
+						.replace(
+							TEMPLATE_VARIABLES.sourcePage,
+							knowledge.sourcePage,
+						)
+						.replace(
+							TEMPLATE_VARIABLES.createdOn,
 							humanReadableDateTime(knowledge.creationTime),
 						)
 				);
