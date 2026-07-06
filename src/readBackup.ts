@@ -215,7 +215,7 @@ export default async function extractDigestsFromBackup(
 			noteExists = await documentNoteExists(
 				documents[docName],
 				app,
-				dateBasedFileName,
+				sourceId.toString(),
 			);
 		}
 

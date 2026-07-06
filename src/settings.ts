@@ -31,6 +31,8 @@ export class MainSettingsTap extends PluginSettingTab {
 
 		containerEl.empty();
 
+		containerEl.createEl("h2", { text: "Configuration" });
+
 		new Setting(containerEl)
 			.setName("Path to Backup File")
 			.setDesc("Please point us to your digests backup file.")
@@ -131,18 +133,6 @@ export class MainSettingsTap extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("Generate Notes From Digests")
-			.setDesc(
-				"Click once you have your backup file ready and we will create Notes based on your digests.",
-			)
-			.addButton((button) =>
-				button.setButtonText("Generate").onClick(() => {
-					const path = this.plugin.settings.pathToBackup;
-					extractDigestsFromBackup(path, this.app, this.plugin);
-				}),
-			);
-
-		new Setting(containerEl)
 			.setName("Return to Default Settings")
 			.setDesc("Click to return to the default settings")
 			.addButton((button) =>
@@ -152,6 +142,18 @@ export class MainSettingsTap extends PluginSettingTab {
 					};
 					await this.plugin.saveSettings();
 					this.display();
+				}),
+			);
+
+		containerEl.createEl("h2", { text: "Action" });
+
+		new Setting(containerEl)
+			.setName("Generate Notes From Digests")
+			.addProgressBar((bar) => bar.setValue(50))
+			.addButton((button) =>
+				button.setButtonText("Generate").onClick(() => {
+					const path = this.plugin.settings.pathToBackup;
+					extractDigestsFromBackup(path, this.app, this.plugin);
 				}),
 			);
 	}
