@@ -4,7 +4,7 @@ import * as path from "path";
 import { App, FileSystemAdapter, TFile, TFolder } from "obsidian";
 import { SupernoteX, toImage } from "supernote-typescript";
 import MyPlugin from "./main";
-import { encodePng } from "image-js";
+import { encodePng, Image } from "image-js";
 import {
 	HEAD_ATLAS_FILE,
 	PATH_TO_KNOWLEDGE_FILE,
@@ -56,6 +56,31 @@ async function documentNoteExists(
 	return (await app.vault.read(doc)).includes(noteUniqueId);
 }
 
+function trimImageBottom(image: Image, padding = 80): Image {
+	const { width, height } = image;
+	let lastContentRow = 0;
+
+	for (let y = height - 1; y >= 0; y--) {
+		let rowHasContent = false;
+		for (let x = 0; x < width; x++) {
+			const pixel = image.getPixel(x, y);
+			if (pixel[0]! < 250 || pixel[1]! < 250 || pixel[2]! < 250) {
+				rowHasContent = true;
+				break;
+			}
+		}
+		if (rowHasContent) {
+			lastContentRow = y;
+			break;
+		}
+	}
+
+	return image.crop({
+		width,
+		height: Math.min(lastContentRow + padding, height),
+	});
+}
+
 async function createMarkImageFile(
 	markName: string,
 	zip: JSZip,
@@ -64,15 +89,17 @@ async function createMarkImageFile(
 ) {
 	// find mark file
 	const markFile = zip.file(PATH_TO_MARK_FILES + markName);
-	// Understand, what is a buffer? what is a uint8array
 	const markBuffer = await markFile?.async("uint8array");
 
-	//to-do convert markfile to PNG in order to include it in note
 	if (markBuffer) {
 		const mark = new SupernoteX(markBuffer);
 		const images = await toImage(mark);
 
-		const pngBuffer = encodePng(images[0]!);
+		const rawImage = images[0]!;
+		const pngBuffer =
+			rawImage instanceof Image
+				? encodePng(trimImageBottom(rawImage))
+				: encodePng(rawImage);
 		try {
 			await app.vault.createBinary(imagePath, pngBuffer);
 		} catch (error) {
