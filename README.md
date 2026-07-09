@@ -43,7 +43,6 @@ On the second backup upload, how will I make sure not to upload stale notes?
 - [x] Create better structure around Atomic Notes
     - [x] create an atlas within the supernote-digest folder
     - [x] create MOC template for each book
-    - [ ] create right and left buttons in template | update, failed on brute forcing this, will have to org by doc and account for updating previous and next on new backup file
 
 - [x] create constants file to manage variables
 - [x] see if there is a way to trim the empty space on the mark files
@@ -51,4 +50,5 @@ On the second backup upload, how will I make sure not to upload stale notes?
 - [x] create a clean up function when switching settings for note style
 - [x] Get github action working
 
+- [ ] create right and left buttons in template | update, failed on brute forcing this, will have to org by doc and account for updating previous and next on new backup file | I think if I sort the array by doc and then check the prev and next before the skip section in the function, this should work
 - [ ] Create docs and details within settings to inform users how to find backup file
