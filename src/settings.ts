@@ -1,6 +1,13 @@
-import { App, PluginSettingTab, Setting } from "obsidian";
+import {
+	App,
+	Modal,
+	PluginSettingTab,
+	ProgressBarComponent,
+	Setting,
+} from "obsidian";
 import MyPlugin from "./main";
 import extractDigestsFromBackup from "./readBackup";
+import cleanDigests from "./cleanDigests";
 
 export interface MyPluginSettings {
 	pathToDigests: string;
@@ -17,6 +24,41 @@ export const DEFAULT_SETTINGS: MyPluginSettings = {
 	pathToBackup: "add a suggested path here",
 	noteOrgStyle: "document",
 };
+
+class ConfirmSwitchModal extends Modal {
+	onConfirm: () => void;
+
+	constructor(app: App, onConfirm: () => void) {
+		super(app);
+		this.onConfirm = onConfirm;
+	}
+
+	onOpen() {
+		const { contentEl } = this;
+		contentEl.createEl("h2", { text: "Switch Note Style?" });
+		contentEl.createEl("p", {
+			text: "Switching note organization styles will delete all previously generated notes. This cannot be undone. Only the notes we generated will be deleted, and you can always regenerate in the future.",
+		});
+
+		new Setting(contentEl)
+			.addButton((btn) =>
+				btn.setButtonText("Cancel").onClick(() => this.close()),
+			)
+			.addButton((btn) =>
+				btn
+					.setButtonText("Switch & Delete")
+					.setCta()
+					.onClick(() => {
+						this.close();
+						this.onConfirm();
+					}),
+			);
+	}
+
+	onClose() {
+		this.contentEl.empty();
+	}
+}
 
 export class MainSettingsTap extends PluginSettingTab {
 	plugin: MyPlugin;
@@ -76,15 +118,20 @@ export class MainSettingsTap extends PluginSettingTab {
 		});
 
 		noteOrgSetting.addToggle((toggle) => {
-			return toggle
-				.setValue(this.plugin.settings.noteOrgStyle === "document")
-				.onChange(async (value) => {
-					this.plugin.settings.noteOrgStyle = value
-						? "document"
-						: "atomic";
-
+			toggle.setValue(this.plugin.settings.noteOrgStyle === "document");
+			toggle.toggleEl.addEventListener("click", (e) => {
+				e.preventDefault();
+				new ConfirmSwitchModal(this.app, async () => {
+					const wasDoc =
+						this.plugin.settings.noteOrgStyle === "document";
+					toggle.setValue(wasDoc ? false : true);
+					this.plugin.settings.noteOrgStyle = wasDoc
+						? "atomic"
+						: "document";
 					await this.plugin.saveSettings();
-				});
+					cleanDigests(this.app, this.plugin);
+				}).open();
+			});
 		});
 
 		noteOrgSetting.controlEl.createSpan({ text: "Document" });
@@ -147,13 +194,25 @@ export class MainSettingsTap extends PluginSettingTab {
 
 		containerEl.createEl("h2", { text: "Action" });
 
+		let progressBar: ProgressBarComponent;
+
 		new Setting(containerEl)
 			.setName("Generate Notes From Digests")
-			.addProgressBar((bar) => bar.setValue(50))
+			.addProgressBar((bar) => {
+				bar.setValue(0);
+				progressBar = bar;
+			})
 			.addButton((button) =>
-				button.setButtonText("Generate").onClick(() => {
+				button.setButtonText("Generate").onClick(async () => {
 					const path = this.plugin.settings.pathToBackup;
-					extractDigestsFromBackup(path, this.app, this.plugin);
+					await extractDigestsFromBackup(
+						path,
+						this.app,
+						this.plugin,
+						(value) => {
+							progressBar.setValue(value);
+						},
+					);
 				}),
 			);
 	}

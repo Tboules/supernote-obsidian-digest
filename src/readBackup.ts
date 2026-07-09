@@ -144,6 +144,7 @@ export default async function extractDigestsFromBackup(
 	pathToBackup: string,
 	app: App,
 	plugin: MyPlugin,
+	incrementProgressBar: (value: number) => void,
 ) {
 	const { pathToAtlas, pathToImages, pathToDigests } = plugin.settings;
 
@@ -160,7 +161,10 @@ export default async function extractDigestsFromBackup(
 
 	// check for supernote_digests and create if not exists
 	if (!app.vault.getFileByPath(`${pathToAtlas}/${HEAD_ATLAS_FILE}.md`)) {
-		await app.vault.createFolder(pathToAtlas);
+		// if atlas folder doesn't exist, create it
+		if (!app.vault.getFolderByPath(pathToAtlas)) {
+			await app.vault.createFolder(pathToAtlas);
+		}
 
 		const atlasTemplate = retrieveTemplate(
 			TEMPLATE_PATHS.atlas,
@@ -187,7 +191,7 @@ export default async function extractDigestsFromBackup(
 	const documents: Record<string, TFile | null> = {};
 
 	//iterate through the knowledge.json file to find mark files
-	for (const knowledge of knowledgeFile) {
+	for (const [index, knowledge] of knowledgeFile.entries()) {
 		// generate unique id for each mark and then check if it already exists in our vault
 		const sourceId = knowledge.creationTime;
 		const dateBasedFileName = humanReadableDateTime(sourceId, true);
@@ -219,6 +223,8 @@ export default async function extractDigestsFromBackup(
 			);
 		}
 
+		const progress = (100 / knowledgeFile.length) * (index + 1);
+		incrementProgressBar(progress);
 		// note exists so skip note creation and mark file extraction
 		if (noteExists) continue;
 
@@ -337,5 +343,5 @@ export default async function extractDigestsFromBackup(
 		}
 	}
 
-	return path;
+	incrementProgressBar(0);
 }

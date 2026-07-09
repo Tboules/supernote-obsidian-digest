@@ -47,8 +47,8 @@ On the second backup upload, how will I make sure not to upload stale notes?
 
 - [x] create constants file to manage variables
 - [x] see if there is a way to trim the empty space on the mark files
-- [ ] create a progress bar as files are processing
-- [ ] Create docs and details within settings to inform users how to find backup file
-- [ ] create a clean up function when switching settings for note style
-
+- [x] create a progress bar as files are processing
+- [x] create a clean up function when switching settings for note style
 - [x] Get github action working
+
+- [ ] Create docs and details within settings to inform users how to find backup file

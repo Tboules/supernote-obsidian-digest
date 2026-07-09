@@ -1,4 +1,5 @@
 ---
+generated_by: "supernote-obsidian-digest"
 source_id: {{SOURCE_ID}}
 source: {{SOURCE}}
 source_page: {{SOURCE_PAGE}}
