@@ -140,6 +140,13 @@ function retrieveTemplate(
 	return fs.readFileSync(relativeTemplatePath, "utf-8");
 }
 
+function extractDocName(document: KnowledgeEntry): string {
+	return (
+		document.sourcePath.split("/").at(-1)?.split(".")[0] ??
+		document.sourcePage
+	);
+}
+
 export default async function extractDigestsFromBackup(
 	pathToBackup: string,
 	app: App,
@@ -184,10 +191,13 @@ export default async function extractDigestsFromBackup(
 	const backupBuffer = fs.readFileSync(pathToBackup);
 	const zip = await JSZip.loadAsync(backupBuffer);
 
-	const knowledgeFile: KnowledgeEntry[] = JSON.parse(
+	let knowledgeFile: KnowledgeEntry[] = JSON.parse(
 		(await zip.file(PATH_TO_KNOWLEDGE_FILE)?.async("string")) ?? "[]",
 	);
 
+	knowledgeFile.sort((a, b) => a.sourcePath.localeCompare(b.sourcePath));
+
+	// List of Documents for Atlas
 	const documents: Record<string, TFile | null> = {};
 
 	//iterate through the knowledge.json file to find mark files
@@ -197,9 +207,7 @@ export default async function extractDigestsFromBackup(
 		const dateBasedFileName = humanReadableDateTime(sourceId, true);
 
 		//get doc for document style notes
-		const docName =
-			knowledge.sourcePath.split("/").at(-1)?.split(".")[0] ??
-			knowledge.sourcePage;
+		const docName = extractDocName(knowledge);
 		//get docFile path based on atomic vs document style notes
 		let docFilePath = `${pathToDigests}/${docName}.md`;
 
@@ -207,12 +215,18 @@ export default async function extractDigestsFromBackup(
 			docFilePath = `${pathToAtlas}/${docName}.md`;
 		}
 
+		let atomicNotePath = `${pathToDigests}/${dateBasedFileName}.md`;
+
 		documents[docName] = app.vault.getFileByPath(docFilePath);
 
 		// check if note has already been created
 		let noteExists = false;
 		if (plugin.settings.noteOrgStyle == "atomic") {
-			noteExists = atomicNoteExists(digestFolder, app, dateBasedFileName);
+			noteExists = atomicNoteExists(
+				digestFolder,
+				app,
+				sourceId.toString(),
+			);
 		}
 
 		if (plugin.settings.noteOrgStyle == "document") {
@@ -223,8 +237,54 @@ export default async function extractDigestsFromBackup(
 			);
 		}
 
+		// progress bar logic
 		const progress = (100 / knowledgeFile.length) * (index + 1);
 		incrementProgressBar(progress);
+
+		// next and pervious logic
+		const previousKnowledgeEntry = knowledgeFile[index - 1];
+		const nextKowledgeEntry = knowledgeFile[index + 1];
+		const atomicTemplate = retrieveTemplate(
+			TEMPLATE_PATHS.atomic,
+			plugin,
+			app,
+		);
+		let filledAtomicTemplate = atomicTemplate;
+		if (
+			previousKnowledgeEntry &&
+			knowledge.sourcePath.localeCompare(
+				previousKnowledgeEntry.sourcePath,
+			) == 0
+		) {
+			// check if note exists
+			filledAtomicTemplate = filledAtomicTemplate.replace(
+				TEMPLATE_VARIABLES.previousNote,
+				humanReadableDateTime(
+					previousKnowledgeEntry.creationTime,
+					true,
+				),
+			);
+		}
+
+		if (
+			nextKowledgeEntry &&
+			knowledge.sourcePath.localeCompare(nextKowledgeEntry.sourcePath) ==
+				0
+		) {
+			// if any next entries were blank, Delete note so it can be reprocessed
+			// We need to do this, because the user could have removed the next placeholder
+			if (noteExists) {
+				const file = app.vault.getFileByPath(atomicNotePath);
+				if (file) {
+					await app.vault.delete(file);
+					noteExists = false;
+				}
+			}
+			filledAtomicTemplate = filledAtomicTemplate.replace(
+				TEMPLATE_VARIABLES.nextNote,
+				humanReadableDateTime(nextKowledgeEntry.creationTime, true),
+			);
+		}
 		// note exists so skip note creation and mark file extraction
 		if (noteExists) continue;
 
@@ -241,11 +301,6 @@ export default async function extractDigestsFromBackup(
 		}
 
 		//grab atomic template so it can be filled
-		const atomicTemplate = retrieveTemplate(
-			TEMPLATE_PATHS.atomic,
-			plugin,
-			app,
-		);
 
 		if (plugin.settings.noteOrgStyle == "atomic") {
 			// check for atlas document
@@ -266,7 +321,7 @@ export default async function extractDigestsFromBackup(
 			}
 
 			// Fill In Templates for Atomic Notes
-			let filledAtomicTemplate = atomicTemplate
+			filledAtomicTemplate = filledAtomicTemplate
 				.replace(
 					TEMPLATE_VARIABLES.source,
 					docName ?? knowledge.sourcePath,
@@ -280,9 +335,8 @@ export default async function extractDigestsFromBackup(
 				.replace(TEMPLATE_VARIABLES.highlight, knowledge.content)
 				.replace(TEMPLATE_VARIABLES.imagePath, imagePath);
 
-			const notePath = `${pathToDigests}/${dateBasedFileName}.md`;
 			try {
-				await app.vault.create(notePath, filledAtomicTemplate);
+				await app.vault.create(atomicNotePath, filledAtomicTemplate);
 			} catch (err) {
 				console.error(err);
 			}

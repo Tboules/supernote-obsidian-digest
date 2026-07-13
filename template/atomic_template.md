@@ -12,4 +12,6 @@ up :: [[{{SOURCE}}]]
 
 ![handwritten note]({{IMAGE_PATH}})
 
+[[{{PREVIOUS}}]] | [[{{NEXT}}]] 
+
 ---

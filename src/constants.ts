@@ -7,6 +7,8 @@ export const TEMPLATE_VARIABLES = {
 	sourceId: "{{SOURCE_ID}}",
 	highlight: "{{HIGHLIGHT}}",
 	imagePath: "{{IMAGE_PATH}}",
+	nextNote: "{{NEXT}}",
+	previousNote: "{{PREVIOUS}}",
 };
 
 export const HEAD_ATLAS_FILE = "supernote_digests";
