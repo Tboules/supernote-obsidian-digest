@@ -147,6 +147,15 @@ function extractDocName(document: KnowledgeEntry): string {
 	);
 }
 
+function documentsMatch(
+	current: KnowledgeEntry,
+	previous?: KnowledgeEntry,
+): previous is KnowledgeEntry {
+	if (!previous) return false;
+
+	return current.sourcePath.localeCompare(previous.sourcePath) == 0;
+}
+
 export default async function extractDigestsFromBackup(
 	pathToBackup: string,
 	app: App,
@@ -250,13 +259,9 @@ export default async function extractDigestsFromBackup(
 			app,
 		);
 		let filledAtomicTemplate = atomicTemplate;
-		if (
-			previousKnowledgeEntry &&
-			knowledge.sourcePath.localeCompare(
-				previousKnowledgeEntry.sourcePath,
-			) == 0
-		) {
-			// check if note exists
+		// check if documents match
+		if (documentsMatch(knowledge, previousKnowledgeEntry)) {
+			// check if previous note exists
 			filledAtomicTemplate = filledAtomicTemplate.replace(
 				TEMPLATE_VARIABLES.previousNote,
 				humanReadableDateTime(
@@ -264,13 +269,14 @@ export default async function extractDigestsFromBackup(
 					true,
 				),
 			);
+		} else {
+			filledAtomicTemplate = filledAtomicTemplate.replace(
+				`[[${TEMPLATE_VARIABLES.previousNote}]] |`,
+				"",
+			);
 		}
 
-		if (
-			nextKowledgeEntry &&
-			knowledge.sourcePath.localeCompare(nextKowledgeEntry.sourcePath) ==
-				0
-		) {
+		if (documentsMatch(knowledge, nextKowledgeEntry)) {
 			// if any next entries were blank, Delete note so it can be reprocessed
 			// We need to do this, because the user could have removed the next placeholder
 			if (noteExists) {
@@ -283,6 +289,11 @@ export default async function extractDigestsFromBackup(
 			filledAtomicTemplate = filledAtomicTemplate.replace(
 				TEMPLATE_VARIABLES.nextNote,
 				humanReadableDateTime(nextKowledgeEntry.creationTime, true),
+			);
+		} else {
+			filledAtomicTemplate = filledAtomicTemplate.replace(
+				`[[${TEMPLATE_VARIABLES.nextNote}]]`,
+				"",
 			);
 		}
 		// note exists so skip note creation and mark file extraction
