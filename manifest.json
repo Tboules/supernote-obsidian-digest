@@ -3,9 +3,9 @@
 	"name": "Supernote Obsidian Digest",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
+	"description": "Supernote Obisidan Digest is a plugin that allows the user to upload their supernote digest backup and extract their digests into their Obsidian vault. They can choose to organize their notes by document or using a more 'atomic' note style.",
 	"author": "Tony Boules",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
-	"isDesktopOnly": false
+	"authorUrl": "",
+	"fundingUrl": "",
+	"isDesktopOnly": true
 }
