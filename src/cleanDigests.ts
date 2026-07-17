@@ -9,8 +9,9 @@ export default function cleanDigests(app: App, plugin: MyPlugin) {
 
 	const atlasFiles = app.vault.getFolderByPath(pathToAtlas);
 
-	const combinedFiles =
-		digests?.children.concat(atlasFiles?.children ?? []) ?? [];
+	const digestChildren = digests?.children ?? [];
+
+	const combinedFiles = digestChildren.concat(atlasFiles?.children ?? []);
 
 	for (const file of combinedFiles) {
 		if (!(file instanceof TFile)) continue;
