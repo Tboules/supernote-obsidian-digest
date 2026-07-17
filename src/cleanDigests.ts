@@ -12,8 +12,6 @@ export default function cleanDigests(app: App, plugin: MyPlugin) {
 	const combinedFiles =
 		digests?.children.concat(atlasFiles?.children ?? []) ?? [];
 
-	console.log(combinedFiles);
-
 	for (const file of combinedFiles) {
 		if (!(file instanceof TFile)) continue;
 
