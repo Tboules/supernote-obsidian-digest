@@ -17,10 +17,12 @@ export interface MyPluginSettings {
 	noteOrgStyle: "atomic" | "document";
 }
 
+const DEFAULT_HOME_DIR = "Supernote Digests";
+
 export const DEFAULT_SETTINGS: MyPluginSettings = {
-	pathToDigests: "SN/Digests",
-	pathToImages: "SN/Images",
-	pathToAtlas: "SN/Atlas",
+	pathToDigests: DEFAULT_HOME_DIR + "/Digests",
+	pathToImages: DEFAULT_HOME_DIR + "/Images",
+	pathToAtlas: DEFAULT_HOME_DIR + "/Atlas",
 	pathToBackup: "",
 	noteOrgStyle: "document",
 };
@@ -74,37 +76,6 @@ export class MainSettingsTap extends PluginSettingTab {
 		containerEl.empty();
 
 		containerEl.createEl("h2", { text: "Configuration" });
-
-		new Setting(containerEl)
-			.setName("Path to Backup File")
-			.setDesc("Please point us to your digests backup file.")
-			.addText((text) =>
-				text
-					.setPlaceholder("Path/To/backup.snbak")
-					.setValue(this.plugin.settings.pathToBackup)
-					.onChange(async (value) => {
-						this.plugin.settings.pathToBackup = value;
-						await this.plugin.saveSettings();
-					}),
-			)
-			.addButton((button) =>
-				button.setButtonText("Browse").onClick(() => {
-					const input = document.createElement("input");
-					input.type = "file";
-					input.accept = ".snbak";
-					input.onchange = async () => {
-						const file = input.files?.[0];
-						if (!file) return;
-
-						const path = (file as any).path;
-						this.plugin.settings.pathToBackup = path;
-
-						this.display();
-						await this.plugin.saveSettings();
-					};
-					input.click();
-				}),
-			);
 
 		const noteOrgSetting = new Setting(containerEl)
 			.setName("Note Organization Style")
@@ -193,6 +164,39 @@ export class MainSettingsTap extends PluginSettingTab {
 			);
 
 		containerEl.createEl("h2", { text: "Action" });
+
+		new Setting(containerEl)
+			.setName("Path to Backup File")
+			.setDesc(
+				"Please point us to your digests backup file. \n In order to find your backup file, on your Supernote device, go to the following: \n Settings > System > Select 'Digest' > Click 'Back Up Now'. \n Afterwards, upload that file to your computer and point us to it.",
+			)
+			.addText((text) =>
+				text
+					.setPlaceholder("Path/To/backup.snbak")
+					.setValue(this.plugin.settings.pathToBackup)
+					.onChange(async (value) => {
+						this.plugin.settings.pathToBackup = value;
+						await this.plugin.saveSettings();
+					}),
+			)
+			.addButton((button) =>
+				button.setButtonText("Browse").onClick(() => {
+					const input = document.createElement("input");
+					input.type = "file";
+					input.accept = ".snbak";
+					input.onchange = async () => {
+						const file = input.files?.[0];
+						if (!file) return;
+
+						const path = (file as any).path;
+						this.plugin.settings.pathToBackup = path;
+
+						this.display();
+						await this.plugin.saveSettings();
+					};
+					input.click();
+				}),
+			);
 
 		let progressBar: ProgressBarComponent;
 

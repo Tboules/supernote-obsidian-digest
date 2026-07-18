@@ -10,7 +10,7 @@ up :: [[{{SOURCE}}]]
 
 > _{{HIGHLIGHT}}_
 
-![handwritten note]({{IMAGE_PATH}})
+![[{{IMAGE_PATH}}]]
 
 [[{{PREVIOUS}}]] | [[{{NEXT}}]] 
 
