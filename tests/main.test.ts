@@ -7,9 +7,9 @@ vi.mock("obsidian");
 
 describe("cleanDigests", () => {
 	it("deletes all files from folder with appropriate frontmatter", () => {
+		//arrange
 		const atlasFolder = new TFolder();
 		const digestFolder = new TFolder();
-		//arrange
 		const app = {
 			metadataCache: {
 				getFileCache: (file: TFile): CachedMetadata | null => {

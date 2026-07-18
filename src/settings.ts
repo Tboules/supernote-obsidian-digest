@@ -21,7 +21,7 @@ export const DEFAULT_SETTINGS: MyPluginSettings = {
 	pathToDigests: "SN/Digests",
 	pathToImages: "SN/Images",
 	pathToAtlas: "SN/Atlas",
-	pathToBackup: "add a suggested path here",
+	pathToBackup: "",
 	noteOrgStyle: "document",
 };
 
@@ -214,6 +214,7 @@ export class MainSettingsTap extends PluginSettingTab {
 						},
 					);
 				}),
-			);
+			)
+			.setDisabled(this.plugin.settings.pathToBackup == "");
 	}
 }

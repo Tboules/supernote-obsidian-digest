@@ -44,4 +44,7 @@ jobs:
             - name: Link Supernote Typescript into Project
               run: npm link supernote-typescript
 
+            - name: Run Tests
+              run: npm run test
+
             - run: npm run build --if-present

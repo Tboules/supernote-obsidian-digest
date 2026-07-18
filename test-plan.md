@@ -47,7 +47,7 @@ file it shouldn't, before release.
     - Once duplication shows up across test files, extract shared mock
       builders
 
-- [ ] **7. Wire `npm test` into CI**
+- [x] **7. Wire `npm test` into CI**
     - Add a test step alongside the existing `.github/workflows/lint.yml`
 
 ## Notes / reminders from the code review
