@@ -1,35 +1,35 @@
 {
-	"name": "supernote-obsidian-digest",
-	"version": "1.0.3",
-	"description": "This is a plugin for supernote users who want to offload their Digests into their Obsidian Vault.",
-	"main": "main.js",
-	"type": "module",
-	"scripts": {
-		"dev": "node esbuild.config.mjs",
-		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
-		"version": "node version-bump.mjs && git add manifest.json versions.json",
-		"lint": "eslint .",
-		"test": "vitest run"
-	},
-	"keywords": [],
-	"license": "0-BSD",
-	"devDependencies": {
-		"@eslint/js": "9.30.1",
-		"@types/jszip": "^3.4.0",
-		"@types/node": "^22",
-		"esbuild": "0.25.5",
-		"eslint-plugin-obsidianmd": "0.1.9",
-		"globals": "14.0.0",
-		"jiti": "2.6.1",
-		"tslib": "2.4.0",
-		"typescript": "^5.8.3",
-		"typescript-eslint": "8.35.1",
-		"vitest": "^4.1.10"
-	},
-	"dependencies": {
-		"color": "^5.0.3",
-		"image-js": "^1.6.1",
-		"jszip": "^3.10.1",
-		"obsidian": "latest"
-	}
+  "name": "supernote-digests",
+  "version": "1.0.3",
+  "description": "This is a plugin for supernote users who want to offload their Digests into their Obsidian Vault.",
+  "main": "main.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+    "version": "node version-bump.mjs && git add manifest.json versions.json",
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "keywords": [],
+  "license": "0-BSD",
+  "devDependencies": {
+    "@eslint/js": "9.30.1",
+    "@types/jszip": "^3.4.0",
+    "@types/node": "^22",
+    "esbuild": "0.25.5",
+    "eslint-plugin-obsidianmd": "0.1.9",
+    "globals": "14.0.0",
+    "jiti": "2.6.1",
+    "tslib": "2.4.0",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "8.35.1",
+    "vitest": "^4.1.10"
+  },
+  "dependencies": {
+    "color": "^5.0.3",
+    "image-js": "^1.6.1",
+    "jszip": "^3.10.1",
+    "obsidian": "latest"
+  }
 }

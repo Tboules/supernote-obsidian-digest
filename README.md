@@ -1,4 +1,4 @@
-# Supernote Obsidian Digest
+# Supernote Digests
 
 Import your [Supernote](https://supernote.com/) digest backups directly into your Obsidian vault — no manual export or PDF extraction required.
 
@@ -26,7 +26,7 @@ Your Supernote backup (`.snbak`) typically lives outside your Obsidian vault —
 
 ## Installation
 
-Search for "Supernote Obsidian Digest" under **Settings → Community plugins**, once approved for the directory listing.
+Search for "Supernote Digests" under **Settings → Community plugins**, once approved for the directory listing.
 
 Or install manually: download `main.js` and `manifest.json` from the [latest release](https://github.com/Tboules/supernote-obsidian-digest/releases/latest) and place them in `<YourVault>/.obsidian/plugins/supernote-digests/`, then enable the plugin under **Settings → Community plugins**.
 
@@ -40,7 +40,7 @@ Or install manually: download `main.js` and `manifest.json` from the [latest rel
     5. Check the checkbox next to **Digest**.
     6. Tap **Back Up Now**.
     7. Once complete, the backup file appears in your device's Export folder — transfer it to your computer via USB, email, cloud storage, or the Browse & Access feature. It'll have a `.snbak` extension.
-2. In Obsidian, open **Settings → Supernote Obsidian Digest**.
+2. In Obsidian, open **Settings → Supernote Digests**.
 3. Under **Path to Backup File**, browse to and select your `.snbak` file.
 4. Choose your preferred **Note Organization Style** — Atomic or Document. Switching this later will delete your previously generated notes, so you'll need to click **Generate** again afterward to rebuild them in the new style.
 5. Optionally adjust where digests, images, and atlas notes are saved.
