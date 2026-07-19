@@ -1,0 +1,60 @@
+name: Release Obsidian plugin
+
+on:
+    push:
+        tags:
+            - "*"
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  submodules: recursive
+
+            - name: Use Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24.x
+                  cache: "npm"
+
+            - run: npm ci
+
+            - name: Install Submodule Dependencies
+              working-directory: supernote-typescript
+              run: npm install --ignore-scripts
+
+            - name: Build submodule
+              working-directory: supernote-typescript
+              run: npm run build
+
+            - name: Remove duplicate image-js
+              run: rm -rf supernote-typescript/node_modules/image-js
+
+            - name: Link Submodule Globally
+              working-directory: supernote-typescript
+              run: npm link
+
+            - name: Link Supernote Typescript into Project
+              run: npm link supernote-typescript
+
+            - name: Run tests
+              run: npm run test
+
+            - name: Build plugin
+              run: npm run build
+
+            - name: Create release
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  tag="${GITHUB_REF#refs/tags/}"
+
+                  gh release create "$tag" \
+                    --title="$tag" \
+                    --draft \
+                    main.js manifest.json
