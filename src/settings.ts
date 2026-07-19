@@ -168,7 +168,7 @@ export class MainSettingsTap extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("Path to Backup File")
 			.setDesc(
-				"Please point us to your digests backup file. \n In order to find your backup file, on your Supernote device, go to the following: \n Settings > System > Select 'Digest' > Click 'Back Up Now'. \n Afterwards, upload that file to your computer and point us to it.",
+				"Please point us to your digests backup file. \n In order to find your backup file, on your Supernote device, go to the following: \n Settings > System > Backup and Restore > Backup > check 'Digest' > Back Up Now. \n The backup file will appear in your device's Export folder — transfer it to your computer (via USB, email, cloud storage, or the Browse & Access feature) and point us to it.",
 			)
 			.addText((text) =>
 				text

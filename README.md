@@ -1,56 +1,49 @@
 # Supernote Obsidian Digest
 
-The goal of this plugin is going to be to automatically offload my Supernote Digests into obsidian without having to manually export them or extrapolate them from a PDF export file.
+Import your [Supernote](https://supernote.com/) digest backups directly into your Obsidian vault — no manual export or PDF extraction required.
 
-There will be two main folder structures that you can choose in the settings.
+Supernote's Digest feature lets you highlight handwritten notes and export them as a backup file (`.snbak`). This plugin reads that backup and turns each highlighted digest into a note in your vault, complete with an embedded image of the original handwritten mark.
 
-1. Automic Notes
-    - This will break down each digest into it's own note and tag the text
-2. Document Notes
-    - This will create a md file for each text and save all digests into that one MD file per text
+## Features
 
-## Initial Research and Rough Plan
+- Upload a `.snbak` backup file and automatically generate notes from your highlighted digests
+- Choose how notes are organized:
+    - **Atomic** — each digest becomes its own note, linked into an Atlas (map of content) for its source document
+    - **Document** — all digests for a source document are collected into a single note
+- Handwritten mark images are extracted from the backup and embedded next to each digest, with trailing whitespace trimmed automatically
+- Re-uploading a backup only creates notes for digests that don't already exist — your existing notes are never overwritten
+- Configurable vault paths for digests, images, and atlas notes
 
-The user will create a backup of their digests which creates a backup.snbak which is basically a zip file.
+## Requirements
 
-In this zip file there are files with the handwritten content and a json file with the highlighted text, a link to the appropriate hand written file, and other meta data.
+- Obsidian 1.5.7 or later
+- Desktop only — this plugin reads the backup file directly from disk, so it isn't available on mobile
+- The [Dataview](https://github.com/blacksmithgu/obsidian-dataview) community plugin — Atlas notes use a Dataview query to list their linked digests, so Dataview must be installed and enabled for those to render
 
-We will use both of these and leverage the supernote-typescript plugin to offload these files into our obsidian vault.
+## Installation
 
-User Uploads backup file -> Chooses File Structure -> Plugin unzips and processes files -> Creates only new notes, but does not replace notes that have been already added.
+Search for "Supernote Obsidian Digest" under **Settings → Community plugins**, once approved for the directory listing.
 
-### Open Question
+Or install manually: download `main.js` and `manifest.json` from the [latest release](https://github.com/Tboules/supernote-obsidian-digest/releases/latest) and place them in `<YourVault>/.obsidian/plugins/supernote-obsidian-digest/`, then enable the plugin under **Settings → Community plugins**.
 
-On the second backup upload, how will I make sure not to upload stale notes?
+## Usage
 
-### Read Backup Function todos
+1. On your Supernote device, create a Digest backup:
+    1. Swipe down from the top of the screen and tap **Settings**.
+    2. Tap **System**.
+    3. Go to **Backup and Restore** and tap the menu icon.
+    4. Tap **Backup**.
+    5. Check the checkbox next to **Digest**.
+    6. Tap **Back Up Now**.
+    7. Once complete, the backup file appears in your device's Export folder — transfer it to your computer via USB, email, cloud storage, or the Browse & Access feature. It'll have a `.snbak` extension.
+2. In Obsidian, open **Settings → Supernote Obsidian Digest**.
+3. Under **Path to Backup File**, browse to and select your `.snbak` file.
+4. Choose your preferred **Note Organization Style** — Atomic or Document. Switching this later will delete your previously generated notes, so you'll need to click **Generate** again afterward to rebuild them in the new style.
+5. Optionally adjust where digests, images, and atlas notes are saved.
+6. Click **Generate**. A progress bar shows how far along the import is.
 
-- [x] create type for knowledge json file
-- [x] create folder in Obsidian
-- [x] create template for notes
-- [x] create notes based on the knowledge file
-- [x] make sure notes do not get recreated
-- [x] add in the mark files into the notes
+You can re-run **Generate** any time you have a new backup — only new digests will produce new notes; anything already imported is left as-is.
 
-- [x] Create setting to allow users to choose which note structure they want
-- [x] Figure out the Digest Folder Setting
-- [x] Create an Image Folder Setting
+## License
 
-- [x] Create structure for notes organized by document
-    - [x] fix header of file
-    - [x] Keep certain meta data like page number and created on on the note itself rather than the header
-
-- [x] Create better structure around Atomic Notes
-    - [x] create an atlas within the supernote-digest folder
-    - [x] create MOC template for each book
-
-- [x] create constants file to manage variables
-- [x] see if there is a way to trim the empty space on the mark files
-- [x] create a progress bar as files are processing
-- [x] create a clean up function when switching settings for note style
-- [x] Get github action working
-
-- [x] create right and left buttons in template | update, failed on brute forcing this, will have to org by doc and account for updating previous and next on new backup file | I think if I sort the array by doc and then check the prev and next before the skip section in the function, this should work
-    - [x] pending is to create a way to clean up the empty placeholders if there are no previuos and / or next notes
-
-- [ ] Create docs and details within settings to inform users how to find backup file
+[0BSD](LICENSE)
