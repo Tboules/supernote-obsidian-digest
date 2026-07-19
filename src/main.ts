@@ -5,7 +5,6 @@ import {
 	MainSettingsTap,
 } from "./settings";
 
-// Remember to rename these classes and interfaces!
 export default class MyPlugin extends Plugin {
 	settings: MyPluginSettings;
 

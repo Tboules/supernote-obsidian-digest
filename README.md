@@ -20,6 +20,10 @@ Supernote's Digest feature lets you highlight handwritten notes and export them 
 - Desktop only — this plugin reads the backup file directly from disk, so it isn't available on mobile
 - The [Dataview](https://github.com/blacksmithgu/obsidian-dataview) community plugin — Atlas notes use a Dataview query to list their linked digests, so Dataview must be installed and enabled for those to render
 
+## File access
+
+Your Supernote backup (`.snbak`) typically lives outside your Obsidian vault — wherever you saved it after transferring it from your device. To read it, this plugin needs permission to access a file at the path you provide, outside the vault's own folder. No other files outside the vault are read or written, and nothing is sent over the network.
+
 ## Installation
 
 Search for "Supernote Obsidian Digest" under **Settings → Community plugins**, once approved for the directory listing.
