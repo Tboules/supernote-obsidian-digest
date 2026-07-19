@@ -1,10 +1,11 @@
 {
-	"id": "supernote-obsidian-digest",
-	"name": "Supernote Obsidian Digest",
-	"version": "1.0.2",
-	"minAppVersion": "1.5.7",
-	"description": "Import Supernote digest backups and convert your highlighted digests into notes in your Obsidian vault, organized as atomic or per-document notes.",
-	"author": "Tony Boules",
-	"authorUrl": "",
-	"isDesktopOnly": true
+  "id": "supernote-digests",
+  "name": "Supernote Obsidian Digest",
+  "version": "1.0.2",
+  "minAppVersion": "1.5.7",
+  "description": "Import Supernote digest backups and convert your highlighted digests into notes in your Obsidian vault, organized as atomic or per-document notes.",
+  "author": "Tony Boules",
+  "authorUrl": "",
+  "isDesktopOnly": true
 }
+

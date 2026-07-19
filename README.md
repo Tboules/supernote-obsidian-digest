@@ -28,7 +28,7 @@ Your Supernote backup (`.snbak`) typically lives outside your Obsidian vault —
 
 Search for "Supernote Obsidian Digest" under **Settings → Community plugins**, once approved for the directory listing.
 
-Or install manually: download `main.js` and `manifest.json` from the [latest release](https://github.com/Tboules/supernote-obsidian-digest/releases/latest) and place them in `<YourVault>/.obsidian/plugins/supernote-obsidian-digest/`, then enable the plugin under **Settings → Community plugins**.
+Or install manually: download `main.js` and `manifest.json` from the [latest release](https://github.com/Tboules/supernote-obsidian-digest/releases/latest) and place them in `<YourVault>/.obsidian/plugins/supernote-digests/`, then enable the plugin under **Settings → Community plugins**.
 
 ## Usage
 
