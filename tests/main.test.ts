@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import cleanDigest from "../src/cleanDigests.ts";
 import { App, CachedMetadata, TFile, TFolder } from "obsidian";
-import MyPlugin from "../src/main.ts";
+import SupernoteDigests from "../src/main.ts";
 
 vi.mock("obsidian");
 
@@ -68,7 +68,7 @@ describe("cleanDigests", () => {
 				pathToDigests: "digests",
 				pathToAtlas: "atlas",
 			},
-		} as unknown as MyPlugin;
+		} as unknown as SupernoteDigests;
 
 		//act
 		cleanDigest(app, plugin);

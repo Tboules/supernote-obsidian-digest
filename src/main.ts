@@ -1,12 +1,12 @@
 import { Plugin } from "obsidian";
 import {
 	DEFAULT_SETTINGS,
-	MyPluginSettings,
+	SupernoteDigestSettings,
 	MainSettingsTap,
 } from "./settings";
 
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+export default class SupernoteDigests extends Plugin {
+	settings: SupernoteDigestSettings;
 
 	async onload() {
 		await this.loadSettings();
@@ -21,7 +21,7 @@ export default class MyPlugin extends Plugin {
 		this.settings = Object.assign(
 			{},
 			DEFAULT_SETTINGS,
-			(await this.loadData()) as Partial<MyPluginSettings>,
+			(await this.loadData()) as Partial<SupernoteDigestSettings>,
 		);
 	}
 

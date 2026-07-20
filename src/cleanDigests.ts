@@ -1,8 +1,8 @@
 import { App, TFile } from "obsidian";
-import MyPlugin from "./main";
+import SupernoteDigests from "./main";
 import { FRONTMATTER_GENERATED_BY } from "./constants";
 
-export default function cleanDigests(app: App, plugin: MyPlugin) {
+export default function cleanDigests(app: App, plugin: SupernoteDigests) {
 	const { pathToAtlas, pathToDigests } = plugin.settings;
 
 	const digests = app.vault.getFolderByPath(pathToDigests);

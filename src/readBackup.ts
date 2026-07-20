@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { App, FileSystemAdapter, TFile, TFolder } from "obsidian";
 import { SupernoteX, toImage } from "supernote-typescript";
-import MyPlugin from "./main";
+import SupernoteDigests from "./main";
 import { encodePng, Image } from "image-js";
 import {
 	HEAD_ATLAS_FILE,
@@ -124,7 +124,7 @@ function humanReadableDateTime(
 
 function retrieveTemplate(
 	templatePath: string,
-	plugin: MyPlugin,
+	plugin: SupernoteDigests,
 	app: App,
 ): string {
 	const relativeTemplatePath = path.join(
@@ -154,7 +154,7 @@ function documentsMatch(
 export default async function extractDigestsFromBackup(
 	pathToBackup: string,
 	app: App,
-	plugin: MyPlugin,
+	plugin: SupernoteDigests,
 	incrementProgressBar: (value: number) => void,
 ) {
 	const { pathToAtlas, pathToImages, pathToDigests } = plugin.settings;

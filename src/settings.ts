@@ -5,11 +5,11 @@ import {
 	ProgressBarComponent,
 	Setting,
 } from "obsidian";
-import MyPlugin from "./main";
+import SupernoteDigests from "./main";
 import extractDigestsFromBackup from "./readBackup";
 import cleanDigests from "./cleanDigests";
 
-export interface MyPluginSettings {
+export interface SupernoteDigestSettings {
 	pathToDigests: string;
 	pathToImages: string;
 	pathToAtlas: string;
@@ -19,7 +19,7 @@ export interface MyPluginSettings {
 
 const DEFAULT_HOME_DIR = "Supernote Digests";
 
-export const DEFAULT_SETTINGS: MyPluginSettings = {
+export const DEFAULT_SETTINGS: SupernoteDigestSettings = {
 	pathToDigests: DEFAULT_HOME_DIR + "/Digests",
 	pathToImages: DEFAULT_HOME_DIR + "/Images",
 	pathToAtlas: DEFAULT_HOME_DIR + "/Atlas",
@@ -63,9 +63,9 @@ class ConfirmSwitchModal extends Modal {
 }
 
 export class MainSettingsTap extends PluginSettingTab {
-	plugin: MyPlugin;
+	plugin: SupernoteDigests;
 
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: SupernoteDigests) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
