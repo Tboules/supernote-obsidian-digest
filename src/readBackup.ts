@@ -13,6 +13,11 @@ import {
 	TEMPLATE_VARIABLES,
 } from "./constants";
 
+interface AtomicNoteFrontMatter {
+	next_note?: string;
+	previous_note?: string;
+}
+
 type KnowledgeEntry = {
 	commentHandwriteName: string;
 	commentStr: string;
@@ -270,37 +275,54 @@ export default async function extractDigestsFromBackup(
 		// check if documents match
 		if (documentsMatch(knowledge, previousKnowledgeEntry)) {
 			// check if previous note exists
-			filledAtomicTemplate = filledAtomicTemplate.replace(
-				TEMPLATE_VARIABLES.previousNote,
-				humanReadableDateTime(
-					previousKnowledgeEntry.creationTime,
-					true,
-				),
-			);
+			if (noteExists) {
+				const file = app.vault.getFileByPath(atomicNotePath);
+				if (file) {
+					await app.fileManager.processFrontMatter(
+						file,
+						(fm: AtomicNoteFrontMatter) => {
+							fm.previous_note = `[[${humanReadableDateTime(previousKnowledgeEntry.creationTime, true)}]]`;
+						},
+					);
+				}
+			} else {
+				filledAtomicTemplate = filledAtomicTemplate.replace(
+					TEMPLATE_VARIABLES.previousNote,
+					humanReadableDateTime(
+						previousKnowledgeEntry.creationTime,
+						true,
+					),
+				);
+			}
 		} else {
 			filledAtomicTemplate = filledAtomicTemplate.replace(
-				`[[${TEMPLATE_VARIABLES.previousNote}]] |`,
+				`previous_note: "[[${TEMPLATE_VARIABLES.previousNote}]]"\n`,
 				"",
 			);
 		}
 
 		if (documentsMatch(knowledge, nextKowledgeEntry)) {
-			// if any next entries were blank, Delete note so it can be reprocessed
-			// We need to do this, because the user could have removed the next placeholder
+			// if a next entry has become available since this note was created,
+			// patch its frontmatter directly instead of recreating the whole note
 			if (noteExists) {
 				const file = app.vault.getFileByPath(atomicNotePath);
 				if (file) {
-					await app.vault.delete(file);
-					noteExists = false;
+					await app.fileManager.processFrontMatter(
+						file,
+						(fm: AtomicNoteFrontMatter) => {
+							fm.next_note = `[[${humanReadableDateTime(nextKowledgeEntry.creationTime, true)}]]`;
+						},
+					);
 				}
+			} else {
+				filledAtomicTemplate = filledAtomicTemplate.replace(
+					TEMPLATE_VARIABLES.nextNote,
+					humanReadableDateTime(nextKowledgeEntry.creationTime, true),
+				);
 			}
-			filledAtomicTemplate = filledAtomicTemplate.replace(
-				TEMPLATE_VARIABLES.nextNote,
-				humanReadableDateTime(nextKowledgeEntry.creationTime, true),
-			);
 		} else {
 			filledAtomicTemplate = filledAtomicTemplate.replace(
-				`[[${TEMPLATE_VARIABLES.nextNote}]]`,
+				`next_note: "[[${TEMPLATE_VARIABLES.nextNote}]]"\n`,
 				"",
 			);
 		}

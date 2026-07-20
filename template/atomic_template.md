@@ -4,6 +4,8 @@ source_id: {{SOURCE_ID}}
 source: {{SOURCE}}
 source_page: {{SOURCE_PAGE}}
 created_on: {{CREATED_ON}}
+previous_note: "[[{{PREVIOUS}}]]"
+next_note: "[[{{NEXT}}]]"
 ---
 
 up :: [[{{SOURCE}}]]
@@ -11,7 +13,5 @@ up :: [[{{SOURCE}}]]
 > _{{HIGHLIGHT}}_
 
 ![[{{IMAGE_PATH}}]]
-
-[[{{PREVIOUS}}]] | [[{{NEXT}}]] 
 
 ---
