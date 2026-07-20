@@ -6,7 +6,7 @@ import SupernoteDigests from "../src/main.ts";
 vi.mock("obsidian");
 
 describe("cleanDigests", () => {
-	it("deletes all files from folder with appropriate frontmatter", () => {
+	it("trashes all files from folder with appropriate frontmatter", async () => {
 		//arrange
 		const atlasFolder = new TFolder();
 		const digestFolder = new TFolder();
@@ -19,8 +19,12 @@ describe("cleanDigests", () => {
 					};
 				},
 			},
+			fileManager: {
+				trashFile: vi.fn((file: TFile): Promise<void> => {
+					return Promise.resolve();
+				}),
+			},
 			vault: {
-				delete: vi.fn((file: TFile): void => {}),
 				getFolderByPath: (path: string): TFolder => {
 					const atlasFiles = [
 						{ test: "test" },
@@ -71,17 +75,17 @@ describe("cleanDigests", () => {
 		} as unknown as SupernoteDigests;
 
 		//act
-		cleanDigest(app, plugin);
+		await cleanDigest(app, plugin);
 
 		//assert
-		expect(app.vault.delete).toHaveBeenCalledTimes(5);
-		expect(app.vault.delete).not.toHaveBeenCalledWith(
+		expect(app.fileManager.trashFile).toHaveBeenCalledTimes(5);
+		expect(app.fileManager.trashFile).not.toHaveBeenCalledWith(
 			atlasFolder.children[0],
 		);
-		expect(app.vault.delete).not.toHaveBeenCalledWith(
+		expect(app.fileManager.trashFile).not.toHaveBeenCalledWith(
 			atlasFolder.children[2],
 		);
-		expect(app.vault.delete).not.toHaveBeenCalledWith(
+		expect(app.fileManager.trashFile).not.toHaveBeenCalledWith(
 			digestFolder.children[1],
 		);
 	});

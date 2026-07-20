@@ -2,7 +2,7 @@ import { App, TFile } from "obsidian";
 import SupernoteDigests from "./main";
 import { FRONTMATTER_GENERATED_BY } from "./constants";
 
-export default function cleanDigests(app: App, plugin: SupernoteDigests) {
+export default async function cleanDigests(app: App, plugin: SupernoteDigests) {
 	const { pathToAtlas, pathToDigests } = plugin.settings;
 
 	const digests = app.vault.getFolderByPath(pathToDigests);
@@ -21,7 +21,7 @@ export default function cleanDigests(app: App, plugin: SupernoteDigests) {
 				"generated_by"
 			] == FRONTMATTER_GENERATED_BY
 		) {
-			app.vault.delete(file);
+			await app.fileManager.trashFile(file);
 		}
 	}
 }

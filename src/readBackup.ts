@@ -91,15 +91,17 @@ async function createMarkImageFile(
 	const mark = new SupernoteX(markBuffer);
 	const images = await toImage(mark);
 
-	const rawImage = images[0]!;
-	const pngBuffer =
-		rawImage instanceof Image
-			? encodePng(trimImageBottom(rawImage))
-			: encodePng(rawImage);
-	try {
-		await app.vault.createBinary(imagePath, pngBuffer);
-	} catch (error) {
-		console.error(error);
+	const rawImage = images[0];
+	if (rawImage) {
+		const pngBuffer =
+			rawImage instanceof Image
+				? encodePng(trimImageBottom(rawImage))
+				: encodePng(rawImage);
+		try {
+			await app.vault.createBinary(imagePath, pngBuffer);
+		} catch (error) {
+			console.error(error);
+		}
 	}
 }
 
@@ -202,7 +204,13 @@ export default async function extractDigestsFromBackup(
 		? new TextDecoder().decode(knowledgeBytes)
 		: "[]";
 
-	let knowledgeFile: KnowledgeEntry[] = JSON.parse(knowledgeJson);
+	const parsedKnowledge: unknown = JSON.parse(knowledgeJson);
+	if (!Array.isArray(parsedKnowledge)) {
+		throw new Error(
+			"Malformed knowledge.json in backup file — expected an array of digest entries.",
+		);
+	}
+	let knowledgeFile = parsedKnowledge as KnowledgeEntry[];
 
 	knowledgeFile.sort((a, b) => a.sourcePath.localeCompare(b.sourcePath));
 

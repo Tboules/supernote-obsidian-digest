@@ -17,6 +17,12 @@ export interface SupernoteDigestSettings {
 	noteOrgStyle: "atomic" | "document";
 }
 
+// Electron patches an absolute filesystem path onto File objects selected via
+// <input type="file">; this isn't part of the standard File API/DOM types.
+interface FileWithPath extends File {
+	path?: string;
+}
+
 const DEFAULT_HOME_DIR = "Supernote Digests";
 
 export const DEFAULT_SETTINGS: SupernoteDigestSettings = {
@@ -75,7 +81,7 @@ export class MainSettingsTap extends PluginSettingTab {
 
 		containerEl.empty();
 
-		containerEl.createEl("h2", { text: "Configuration" });
+		new Setting(containerEl).setName("Configuration").setHeading();
 
 		const noteOrgSetting = new Setting(containerEl)
 			.setName("Note Organization Style")
@@ -100,7 +106,7 @@ export class MainSettingsTap extends PluginSettingTab {
 						? "atomic"
 						: "document";
 					await this.plugin.saveSettings();
-					cleanDigests(this.app, this.plugin);
+					await cleanDigests(this.app, this.plugin);
 				}).open();
 			});
 		});
@@ -163,7 +169,7 @@ export class MainSettingsTap extends PluginSettingTab {
 				}),
 			);
 
-		containerEl.createEl("h2", { text: "Action" });
+		new Setting(containerEl).setName("Action").setHeading();
 
 		new Setting(containerEl)
 			.setName("Path to Backup File")
@@ -188,7 +194,7 @@ export class MainSettingsTap extends PluginSettingTab {
 						const file = input.files?.[0];
 						if (!file) return;
 
-						const path = (file as any).path;
+						const path = (file as FileWithPath).path ?? "";
 						this.plugin.settings.pathToBackup = path;
 
 						this.display();
