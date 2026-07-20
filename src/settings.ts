@@ -187,16 +187,26 @@ export class MainSettingsTap extends PluginSettingTab {
 			)
 			.addButton((button) =>
 				button.setButtonText("Browse").onClick(() => {
-					const input = document.createElement("input");
-					input.type = "file";
-					input.accept = ".snbak";
+					// we are creating an input that will get removed after it's used
+					// if you don't clean it, it will live in the dom and create repeat inputs.
+					const input = containerEl.createEl("input", {
+						type: "file",
+						attr: {
+							accept: ".snbak",
+							style: "display: none;",
+						},
+					});
 					input.onchange = async () => {
 						const file = input.files?.[0];
-						if (!file) return;
+						if (!file) {
+							input.remove();
+							return;
+						}
 
 						const path = (file as FileWithPath).path ?? "";
 						this.plugin.settings.pathToBackup = path;
 
+						input.remove();
 						this.display();
 						await this.plugin.saveSettings();
 					};
