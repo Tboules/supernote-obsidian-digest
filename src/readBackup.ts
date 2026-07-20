@@ -1,4 +1,4 @@
-import JSZip from "jszip";
+import { unzipSync } from "fflate";
 import * as fs from "fs";
 import * as path from "path";
 import { App, FileSystemAdapter, TFile, TFolder } from "obsidian";
@@ -82,29 +82,24 @@ function trimImageBottom(image: Image, padding = 80): Image {
 }
 
 async function createMarkImageFile(
-	markName: string,
-	zip: JSZip,
+	markBuffer: Uint8Array<ArrayBuffer>,
 	imagePath: string,
 	app: App,
 ) {
 	// find mark file
-	const markFile = zip.file(PATH_TO_MARK_FILES + markName);
-	const markBuffer = await markFile?.async("uint8array");
 
-	if (markBuffer) {
-		const mark = new SupernoteX(markBuffer);
-		const images = await toImage(mark);
+	const mark = new SupernoteX(markBuffer);
+	const images = await toImage(mark);
 
-		const rawImage = images[0]!;
-		const pngBuffer =
-			rawImage instanceof Image
-				? encodePng(trimImageBottom(rawImage))
-				: encodePng(rawImage);
-		try {
-			await app.vault.createBinary(imagePath, pngBuffer);
-		} catch (error) {
-			console.log(error);
-		}
+	const rawImage = images[0]!;
+	const pngBuffer =
+		rawImage instanceof Image
+			? encodePng(trimImageBottom(rawImage))
+			: encodePng(rawImage);
+	try {
+		await app.vault.createBinary(imagePath, pngBuffer);
+	} catch (error) {
+		console.error(error);
 	}
 }
 
@@ -198,11 +193,16 @@ export default async function extractDigestsFromBackup(
 
 	//read the backup file
 	const backupBuffer = fs.readFileSync(pathToBackup);
-	const zip = await JSZip.loadAsync(backupBuffer);
 
-	let knowledgeFile: KnowledgeEntry[] = JSON.parse(
-		(await zip.file(PATH_TO_KNOWLEDGE_FILE)?.async("string")) ?? "[]",
-	);
+	const knowledgeZip = unzipSync(backupBuffer, {
+		filter: (f) => f.name === PATH_TO_KNOWLEDGE_FILE,
+	});
+	const knowledgeBytes = knowledgeZip[PATH_TO_KNOWLEDGE_FILE];
+	const knowledgeJson = knowledgeBytes
+		? new TextDecoder().decode(knowledgeBytes)
+		: "[]";
+
+	let knowledgeFile: KnowledgeEntry[] = JSON.parse(knowledgeJson);
 
 	knowledgeFile.sort((a, b) => a.sourcePath.localeCompare(b.sourcePath));
 
@@ -303,12 +303,14 @@ export default async function extractDigestsFromBackup(
 		const imagePath = `${pathToImages}/${sourceId}.png`;
 		const imageExists = app.vault.getFileByPath(imagePath);
 		if (!imageExists) {
-			await createMarkImageFile(
-				knowledge.commentHandwriteName,
-				zip,
-				imagePath,
-				app,
-			);
+			const markPath = `${PATH_TO_MARK_FILES}${knowledge.commentHandwriteName}`;
+			const markZip = unzipSync(backupBuffer, {
+				filter: (f) => f.name === markPath,
+			});
+			const markBuffer = markZip[markPath];
+			if (markBuffer) {
+				await createMarkImageFile(markBuffer, imagePath, app);
+			}
 		}
 
 		//grab atomic template so it can be filled
