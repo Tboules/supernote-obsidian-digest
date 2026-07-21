@@ -2,7 +2,7 @@
 	"id": "supernote-digests",
 	"name": "Supernote Digests",
 	"version": "1.0.5",
-	"minAppVersion": "1.5.7",
+	"minAppVersion": "1.6.6",
 	"description": "Import Supernote digest backups and convert your highlighted digests into notes in your vault, organized as atomic or per-document notes.",
 	"author": "Tony Boules",
 	"authorUrl": "",
