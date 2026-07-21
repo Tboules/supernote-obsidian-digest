@@ -14,22 +14,6 @@ Supernote's Digest feature lets you highlight handwritten notes and export them 
 - Re-uploading a backup only creates notes for digests that don't already exist — your existing notes are never overwritten
 - Configurable vault paths for digests, images, and atlas notes
 
-## Requirements
-
-- Obsidian 1.5.7 or later
-- Desktop only — this plugin reads the backup file directly from disk, so it isn't available on mobile
-- The [Dataview](https://github.com/blacksmithgu/obsidian-dataview) community plugin — Atlas notes use a Dataview query to list their linked digests, so Dataview must be installed and enabled for those to render
-
-## File access
-
-Your Supernote backup (`.snbak`) typically lives outside your Obsidian vault — wherever you saved it after transferring it from your device. To read it, this plugin needs permission to access a file at the path you provide, outside the vault's own folder. No other files outside the vault are read or written, and nothing is sent over the network.
-
-## Installation
-
-Search for "Supernote Digests" under **Settings → Community plugins**, once approved for the directory listing.
-
-Or install manually: download `main.js` and `manifest.json` from the [latest release](https://github.com/Tboules/supernote-obsidian-digest/releases/latest) and place them in `<YourVault>/.obsidian/plugins/supernote-digests/`, then enable the plugin under **Settings → Community plugins**.
-
 ## Usage
 
 1. On your Supernote device, create a Digest backup:
@@ -47,6 +31,22 @@ Or install manually: download `main.js` and `manifest.json` from the [latest rel
 6. Click **Generate**. A progress bar shows how far along the import is.
 
 You can re-run **Generate** any time you have a new backup — only new digests will produce new notes; anything already imported is left as-is.
+
+## Requirements
+
+- Obsidian 1.5.7 or later
+- Desktop only — this plugin reads the backup file directly from disk, so it isn't available on mobile
+- The [Dataview](https://github.com/blacksmithgu/obsidian-dataview) community plugin — Atlas notes use a Dataview query to list their linked digests, so Dataview must be installed and enabled for those to render
+
+## File access
+
+Your Supernote backup (`.snbak`) typically lives outside your Obsidian vault — wherever you saved it after transferring it from your device. To read it, this plugin needs permission to access a file at the path you provide, outside the vault's own folder. No other files outside the vault are read or written, and nothing is sent over the network.
+
+## Installation
+
+Search for "Supernote Digests" under **Settings → Community plugins**, once approved for the directory listing.
+
+Or install manually: download `main.js` and `manifest.json` from the [latest release](https://github.com/Tboules/supernote-obsidian-digest/releases/latest) and place them in `<YourVault>/.obsidian/plugins/supernote-digests/`, then enable the plugin under **Settings → Community plugins**.
 
 ## License
 
