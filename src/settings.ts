@@ -193,7 +193,7 @@ export class MainSettingsTap extends PluginSettingTab {
 						type: "file",
 						attr: {
 							accept: ".snbak",
-							style: "display: none;",
+							style: "position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0;",
 						},
 					});
 					input.onchange = async () => {

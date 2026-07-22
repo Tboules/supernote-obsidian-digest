@@ -1,7 +1,6 @@
 import { unzipSync } from "fflate";
 import * as fs from "fs";
-import * as path from "path";
-import { App, FileSystemAdapter, TFile, TFolder } from "obsidian";
+import { App, TFile, TFolder } from "obsidian";
 import { SupernoteX, toImage } from "supernote-typescript";
 import SupernoteDigests from "./main";
 import { encodePng, Image } from "image-js";
@@ -9,9 +8,12 @@ import {
 	HEAD_ATLAS_FILE,
 	PATH_TO_KNOWLEDGE_FILE,
 	PATH_TO_MARK_FILES,
-	TEMPLATE_PATHS,
 	TEMPLATE_VARIABLES,
 } from "./constants";
+import atlasTemplate from "../template/atlas_template.md";
+import atomicTemplate from "../template/atomic_template.md";
+import documentHeaderTemplate from "../template/document_header.md";
+import digestBodyTemplate from "../template/digest.md";
 
 interface AtomicNoteFrontMatter {
 	next_note?: string;
@@ -129,19 +131,6 @@ function humanReadableDateTime(
 	return readableDateTime;
 }
 
-function retrieveTemplate(
-	templatePath: string,
-	plugin: SupernoteDigests,
-	app: App,
-): string {
-	const relativeTemplatePath = path.join(
-		(app.vault.adapter as FileSystemAdapter).getBasePath(),
-		plugin.manifest.dir ?? "",
-		templatePath,
-	);
-	return fs.readFileSync(relativeTemplatePath, "utf-8");
-}
-
 function extractDocName(document: KnowledgeEntry): string {
 	return (
 		document.sourcePath.split("/").at(-1)?.split(".")[0] ??
@@ -183,12 +172,6 @@ export default async function extractDigestsFromBackup(
 		if (!app.vault.getFolderByPath(pathToAtlas)) {
 			await app.vault.createFolder(pathToAtlas);
 		}
-
-		const atlasTemplate = retrieveTemplate(
-			TEMPLATE_PATHS.atlas,
-			plugin,
-			app,
-		);
 
 		await app.vault.create(
 			`${pathToAtlas}/${HEAD_ATLAS_FILE}.md`,
@@ -266,11 +249,6 @@ export default async function extractDigestsFromBackup(
 		// next and pervious logic
 		const previousKnowledgeEntry = knowledgeFile[index - 1];
 		const nextKowledgeEntry = knowledgeFile[index + 1];
-		const atomicTemplate = retrieveTemplate(
-			TEMPLATE_PATHS.atomic,
-			plugin,
-			app,
-		);
 		let filledAtomicTemplate = atomicTemplate;
 		// check if documents match
 		if (documentsMatch(knowledge, previousKnowledgeEntry)) {
@@ -349,15 +327,9 @@ export default async function extractDigestsFromBackup(
 			// check for atlas document
 			// if it doesn't exist than create it and add the MOC template
 			if (!documents[docName]) {
-				const documentMocTemplate = retrieveTemplate(
-					TEMPLATE_PATHS.atlas,
-					plugin,
-					app,
-				);
-
 				documents[docName] = await app.vault.create(
 					docFilePath,
-					documentMocTemplate
+					atlasTemplate
 						.replace(TEMPLATE_VARIABLES.atlasHead, HEAD_ATLAS_FILE)
 						.replace(TEMPLATE_VARIABLES.atlasTitle, docName),
 				);
@@ -385,23 +357,10 @@ export default async function extractDigestsFromBackup(
 			}
 		}
 
-		// Get Template Header
-		const templateDocumentHeader = retrieveTemplate(
-			TEMPLATE_PATHS.docHead,
-			plugin,
-			app,
-		);
-		// Get Template Body
-		const templateBody = retrieveTemplate(
-			TEMPLATE_PATHS.docBody,
-			plugin,
-			app,
-		);
-
 		if (plugin.settings.noteOrgStyle == "document") {
 			//check if the header exists
 			if (!documents[docName]) {
-				const filledTemplateHeader = templateDocumentHeader.replace(
+				const filledTemplateHeader = documentHeaderTemplate.replace(
 					TEMPLATE_VARIABLES.source,
 					docName ?? knowledge.sourcePath,
 				);
@@ -417,7 +376,7 @@ export default async function extractDigestsFromBackup(
 				return (
 					content +
 					"\n\n" +
-					templateBody
+					digestBodyTemplate
 						.replace(
 							TEMPLATE_VARIABLES.highlight,
 							knowledge.content,
