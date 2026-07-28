@@ -8,6 +8,7 @@ import {
 import SupernoteDigests from "./main";
 import extractDigestsFromBackup from "./readBackup";
 import cleanDigests from "./cleanDigests";
+import { webUtils } from 'electron'
 
 export interface SupernoteDigestSettings {
 	pathToDigests: string;
@@ -15,12 +16,6 @@ export interface SupernoteDigestSettings {
 	pathToAtlas: string;
 	pathToBackup: string;
 	noteOrgStyle: "atomic" | "document";
-}
-
-// Electron patches an absolute filesystem path onto File objects selected via
-// <input type="file">; this isn't part of the standard File API/DOM types.
-interface FileWithPath extends File {
-	path?: string;
 }
 
 const DEFAULT_HOME_DIR = "Supernote Digests";
@@ -203,7 +198,8 @@ export class MainSettingsTap extends PluginSettingTab {
 							return;
 						}
 
-						const path = (file as FileWithPath).path ?? "";
+						const path = webUtils.getPathForFile(file);
+						console.log(path)
 						this.plugin.settings.pathToBackup = path;
 
 						input.remove();

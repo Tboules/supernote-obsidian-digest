@@ -1,36 +1,5 @@
 # "Generate button does nothing" — diagnosis & fix plan
 
-## Symptom
-Three users report the **Generate** button does nothing. Cannot reproduce on
-the author's Mac (Obsidian 1.12.7, official plugin) — a full fresh flow (reset
-settings → atomic → Browse → pick file → Generate) works there.
-
-## What we ruled out
-- **`file.path` / Electron `webUtils`** — verified working on 1.12.7 (Browse
-  populates the path correctly). Not the cause.
-
-## Root problem: failures are invisible + input assumptions are brittle
-Two independent things combine so that any failure looks like "the button does
-nothing," with zero feedback:
-
-1. **Silent empty-result path** (`src/readBackup.ts:188-201`). The
-   `knowledge.json` lookup is an exact string match on
-   `PATH_TO_KNOWLEDGE_FILE = "backup/DIGEST/knowledge.json"`. If a `.snbak`
-   doesn't contain that exact path (different casing, prefix, or layout — e.g.
-   a web-app/cloud export vs. on-device export, or a different firmware), then:
-   - `knowledgeBytes` is `undefined` → `knowledgeJson` falls back to `"[]"`
-   - parses to an empty array → the `Array.isArray` guard does NOT fire
-   - loop runs zero times → returns with no notes, no error, no progress.
-2. **No error surfacing.** The Generate `onClick`
-   (`src/settings.ts:226-236`) has no `try/catch`, so a genuine throw (bad
-   path, unreadable file, unexpected structure) vanishes silently too.
-
-### Why this matches the reports
-- The `.snbak` layout is **undocumented and officially "unstable"** (per
-  Ratta / supernote-typescript README) and was reverse-engineered from the
-  author's Manta. Other users' files (esp. the confirmed web-app-export user)
-  can legitimately differ, hitting the silent empty-result path above.
-
 ## Fix plan (priority order)
 
 ### 1. Surface all failures (highest priority, lowest risk)
