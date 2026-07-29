@@ -6,8 +6,6 @@ import SupernoteDigests from "./main";
 import { encodePng, Image } from "image-js";
 import {
 	HEAD_ATLAS_FILE,
-	PATH_TO_KNOWLEDGE_FILE,
-	PATH_TO_MARK_FILES,
 	TEMPLATE_VARIABLES,
 } from "./constants";
 import atlasTemplate from "../template/atlas_template.md";
@@ -94,7 +92,6 @@ async function createMarkImageFile(
 	app: App,
 ) {
 	// find mark file
-
 	const mark = new SupernoteX(markBuffer);
 	const images = await toImage(mark);
 
@@ -107,7 +104,7 @@ async function createMarkImageFile(
 		try {
 			await app.vault.createBinary(imagePath, pngBuffer);
 		} catch (error) {
-			console.error(error);
+			throw new Error("There was an issue generating an image of your Digest.")
 		}
 	}
 }
@@ -184,10 +181,22 @@ export default async function extractDigestsFromBackup(
 	//read the backup file
 	const backupBuffer = fs.readFileSync(pathToBackup);
 
+	const backupEntryNames: string[] = [];
 	const knowledgeZip = unzipSync(backupBuffer, {
-		filter: (f) => f.name === PATH_TO_KNOWLEDGE_FILE,
+		filter: (f) => {
+			backupEntryNames.push(f.name);
+			return f.name.toLowerCase().endsWith('knowledge.json');
+		}
 	});
-	const knowledgeBytes = knowledgeZip[PATH_TO_KNOWLEDGE_FILE];
+
+	const knowledgeFileMatches = Object.keys(knowledgeZip)
+	const [knowledgeFileName, ...extraMatches] = knowledgeFileMatches;
+	if (!knowledgeFileName || extraMatches.length > 0) {
+		throw new Error(
+			`Expected exactly one knowledge.json match in backup, found ${knowledgeFileMatches.length}. Backup contains: ${backupEntryNames.join(", ")}`,
+		);
+	}
+	const knowledgeBytes = knowledgeZip[knowledgeFileName];
 	const knowledgeJson = knowledgeBytes
 		? new TextDecoder().decode(knowledgeBytes)
 		: "[]";
@@ -311,10 +320,16 @@ export default async function extractDigestsFromBackup(
 		const imagePath = `${pathToImages}/${sourceId}.png`;
 		const imageExists = app.vault.getFileByPath(imagePath);
 		if (!imageExists) {
-			const markPath = `${PATH_TO_MARK_FILES}${knowledge.commentHandwriteName}`;
 			const markZip = unzipSync(backupBuffer, {
-				filter: (f) => f.name === markPath,
+				filter: (f) => f.name.endsWith(knowledge.commentHandwriteName),
 			});
+			const markMatches = Object.keys(markZip)
+			const [markPath, ...extraMatches] = markMatches
+			if (!markPath || extraMatches.length > 0) {
+				throw new Error(
+					`Path to handwritten note not found. Backup contains: ${backupEntryNames.join(", ")}`,
+				);
+			}
 			const markBuffer = markZip[markPath];
 			if (markBuffer) {
 				await createMarkImageFile(markBuffer, imagePath, app);
