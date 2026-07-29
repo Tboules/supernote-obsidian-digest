@@ -212,6 +212,15 @@ export class MainSettingsTap extends PluginSettingTab {
 						}
 
 						const path = getPathForFile(file)
+						if (path == "") {
+							// never fail silently — the text field is a manual
+							// fallback that works on every platform
+							new Notice(
+								"Couldn't determine the file's location automatically. Please type the full path to your backup file into the text field instead.",
+							);
+							input.remove();
+							return;
+						}
 						this.plugin.settings.pathToBackup = path;
 
 						input.remove();
@@ -232,7 +241,12 @@ export class MainSettingsTap extends PluginSettingTab {
 			})
 			.addButton((button) =>
 				button.setButtonText("Generate").onClick(async () => {
-					const path = this.plugin.settings.pathToBackup;
+					// tolerate paths pasted with surrounding quotes (e.g. from
+					// Windows' "Copy as path") or stray whitespace
+					const path = this.plugin.settings.pathToBackup
+						.trim()
+						.replace(/^"(.*)"$/, "$1")
+						.replace(/^'(.*)'$/, "$1");
 					if (path == "") {
 						new Notice("Please select a backup file before generating.");
 						return;
