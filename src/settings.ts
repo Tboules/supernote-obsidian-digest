@@ -19,6 +19,18 @@ export interface SupernoteDigestSettings {
 	noteOrgStyle: "atomic" | "document";
 }
 
+// Resolving the absolute path of a file chosen via <input type="file"> differs
+// by Electron version and context. `webUtils.getPathForFile` is the modern API
+// (Electron 29+), but it isn't reliably exposed in every Obsidian renderer
+// build, so we feature-detect it and fall back to the legacy `File.path`
+// property when it's missing.
+function getPathForFile(file: File): string {
+	if (webUtils?.getPathForFile) {
+		return webUtils.getPathForFile(file);
+	}
+	return (file as File & { path?: string }).path ?? "";
+}
+
 const DEFAULT_HOME_DIR = "Supernote Digests";
 
 export const DEFAULT_SETTINGS: SupernoteDigestSettings = {
@@ -199,7 +211,7 @@ export class MainSettingsTap extends PluginSettingTab {
 							return;
 						}
 
-						const path = webUtils.getPathForFile(file);
+						const path = getPathForFile(file)
 						this.plugin.settings.pathToBackup = path;
 
 						input.remove();
