@@ -1,6 +1,6 @@
 {
   "name": "supernote-digests",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "This is a plugin for supernote users who want to offload their Digests into their Obsidian Vault.",
   "main": "main.js",
   "type": "module",
