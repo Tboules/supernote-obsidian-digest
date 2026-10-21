@@ -1,9 +1,10 @@
 import { unzipSync } from "fflate";
 import * as fs from "fs";
 import { App, TFile, TFolder } from "obsidian";
-import { SupernoteX, toImage } from "supernote-typescript";
 import SupernoteDigests from "./main";
 import { encodePng, Image } from "image-js";
+import { parseSupernote } from "./supernote/parse";
+import { renderPage } from "./supernote/render";
 import { HEAD_ATLAS_FILE, TEMPLATE_VARIABLES } from "./constants";
 import atlasTemplate from "../template/atlas_template.md";
 import atomicTemplate from "../template/atomic_template.md";
@@ -88,16 +89,9 @@ async function createMarkImageFile(
 	imagePath: string,
 	app: App,
 ) {
-	// find mark file
-	const mark = new SupernoteX(markBuffer);
-	const images = await toImage(mark);
-
-	const rawImage = images[0];
-	if (rawImage) {
-		const pngBuffer =
-			rawImage instanceof Image
-				? encodePng(trimImageBottom(rawImage))
-				: encodePng(rawImage);
+	const mark = parseSupernote(markBuffer);
+	if (mark.pages.length > 0) {
+		const pngBuffer = encodePng(trimImageBottom(renderPage(mark, 0)));
 		try {
 			await app.vault.createBinary(imagePath, pngBuffer);
 		} catch (error) {

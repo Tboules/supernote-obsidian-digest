@@ -50,4 +50,4 @@ Or install manually: download `main.js` and `manifest.json` from the [latest rel
 
 ## License
 
-[0BSD](LICENSE)
+[GPL-3.0-or-later](LICENSE). The `.mark` file decoder in `src/supernote/` is adapted from [supernote-typescript](https://github.com/philips/supernote-typescript) by Brandon Philips.
