@@ -23,3 +23,6 @@ release-approval-plan.md
 
 # Exclude macOS Finder (System Explorer) View States
 .DS_Store
+
+# compiled TS output (esbuild bundles from src/*.ts directly)
+src/**/*.js
