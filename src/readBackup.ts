@@ -4,10 +4,7 @@ import { App, TFile, TFolder } from "obsidian";
 import { SupernoteX, toImage } from "supernote-typescript";
 import SupernoteDigests from "./main";
 import { encodePng, Image } from "image-js";
-import {
-	HEAD_ATLAS_FILE,
-	TEMPLATE_VARIABLES,
-} from "./constants";
+import { HEAD_ATLAS_FILE, TEMPLATE_VARIABLES } from "./constants";
 import atlasTemplate from "../template/atlas_template.md";
 import atomicTemplate from "../template/atomic_template.md";
 import documentHeaderTemplate from "../template/document_header.md";
@@ -19,7 +16,7 @@ interface AtomicNoteFrontMatter {
 }
 
 type KnowledgeEntry = {
-	commentHandwriteName: string;
+	commentHandwriteName?: string;
 	commentStr: string;
 	content: string;
 	creationTime: number;
@@ -31,7 +28,7 @@ type KnowledgeEntry = {
 	metadata: string;
 	pendingSync: boolean;
 	serviceId: number;
-	sourcePage: string;
+	sourcePage?: string;
 	sourcePath: string;
 	sourceType: number;
 	state: number;
@@ -104,7 +101,9 @@ async function createMarkImageFile(
 		try {
 			await app.vault.createBinary(imagePath, pngBuffer);
 		} catch (error) {
-			throw new Error("There was an issue generating an image of your Digest.")
+			throw new Error(
+				"There was an issue generating an image of your Digest.",
+			);
 		}
 	}
 }
@@ -130,8 +129,8 @@ function humanReadableDateTime(
 
 function extractDocName(document: KnowledgeEntry): string {
 	return (
-		document.sourcePath.split("/").at(-1)?.split(".")[0] ??
-		document.sourcePage
+		document.sourcePath.split("/").at(-1)?.split(".")[0] ||
+		"Untitled Digest"
 	);
 }
 
@@ -185,11 +184,11 @@ export default async function extractDigestsFromBackup(
 	const knowledgeZip = unzipSync(backupBuffer, {
 		filter: (f) => {
 			backupEntryNames.push(f.name);
-			return f.name.toLowerCase().endsWith('knowledge.json');
-		}
+			return f.name.toLowerCase().endsWith("knowledge.json");
+		},
 	});
 
-	const knowledgeFileMatches = Object.keys(knowledgeZip)
+	const knowledgeFileMatches = Object.keys(knowledgeZip);
 	const [knowledgeFileName, ...extraMatches] = knowledgeFileMatches;
 	if (!knowledgeFileName || extraMatches.length > 0) {
 		throw new Error(
@@ -319,12 +318,13 @@ export default async function extractDigestsFromBackup(
 		// Create Mark Image
 		const imagePath = `${pathToImages}/${sourceId}.png`;
 		const imageExists = app.vault.getFileByPath(imagePath);
-		if (!imageExists) {
+		const handWrittenComment = knowledge.commentHandwriteName;
+		if (!imageExists && handWrittenComment) {
 			const markZip = unzipSync(backupBuffer, {
-				filter: (f) => f.name.endsWith(knowledge.commentHandwriteName),
+				filter: (f) => f.name.endsWith(handWrittenComment),
 			});
-			const markMatches = Object.keys(markZip)
-			const [markPath, ...extraMatches] = markMatches
+			const markMatches = Object.keys(markZip);
+			const [markPath, ...extraMatches] = markMatches;
 			if (!markPath || extraMatches.length > 0) {
 				throw new Error(
 					`Path to handwritten note not found. Backup contains: ${backupEntryNames.join(", ")}`,
@@ -352,18 +352,23 @@ export default async function extractDigestsFromBackup(
 
 			// Fill In Templates for Atomic Notes
 			filledAtomicTemplate = filledAtomicTemplate
+				.replace(TEMPLATE_VARIABLES.source, docName)
 				.replace(
-					TEMPLATE_VARIABLES.source,
-					docName ?? knowledge.sourcePath,
+					TEMPLATE_VARIABLES.sourcePage,
+					knowledge.sourcePage ?? "",
 				)
-				.replace(TEMPLATE_VARIABLES.sourcePage, knowledge.sourcePage)
 				.replace(
 					TEMPLATE_VARIABLES.createdOn,
 					humanReadableDateTime(knowledge.creationTime),
 				)
 				.replace(TEMPLATE_VARIABLES.sourceId, sourceId.toString())
 				.replace(TEMPLATE_VARIABLES.highlight, knowledge.content)
-				.replace(TEMPLATE_VARIABLES.imagePath, imagePath);
+				.replace(
+					handWrittenComment
+						? TEMPLATE_VARIABLES.imagePath
+						: `![[${TEMPLATE_VARIABLES.imagePath}]]`,
+					handWrittenComment ? imagePath : "",
+				);
 
 			try {
 				await app.vault.create(atomicNotePath, filledAtomicTemplate);
@@ -377,7 +382,7 @@ export default async function extractDigestsFromBackup(
 			if (!documents[docName]) {
 				const filledTemplateHeader = documentHeaderTemplate.replace(
 					TEMPLATE_VARIABLES.source,
-					docName ?? knowledge.sourcePath,
+					docName,
 				);
 
 				documents[docName] = await app.vault.create(
@@ -396,14 +401,19 @@ export default async function extractDigestsFromBackup(
 							TEMPLATE_VARIABLES.highlight,
 							knowledge.content,
 						)
-						.replace(TEMPLATE_VARIABLES.imagePath, imagePath)
+						.replace(
+							handWrittenComment
+								? TEMPLATE_VARIABLES.imagePath
+								: `![[${TEMPLATE_VARIABLES.imagePath}]]`,
+							handWrittenComment ? imagePath : "",
+						)
 						.replace(
 							TEMPLATE_VARIABLES.sourceId,
 							sourceId.toString(),
 						)
 						.replace(
 							TEMPLATE_VARIABLES.sourcePage,
-							knowledge.sourcePage,
+							knowledge.sourcePage ?? "",
 						)
 						.replace(
 							TEMPLATE_VARIABLES.createdOn,
